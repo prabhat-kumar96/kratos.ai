@@ -22,6 +22,7 @@ const io = new Server(server, {
     }
 });
 
+/*
 // Redis Subscriber Setup
 const redisSubscriber = createClient({ url: 'redis://redis:6379' });
 redisSubscriber.on('error', (err) => console.log('Redis Client Error', err));
@@ -39,6 +40,8 @@ redisSubscriber.on('error', (err) => console.log('Redis Client Error', err));
         console.log("Failed to connect to Redis:", e);
     }
 })();
+
+*/
 
 io.on('connection', (socket) => {
     console.log('User connected to Live Stream:', socket.id);
