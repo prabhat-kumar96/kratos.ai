@@ -4,8 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>krotos.ai</title>
   </head>
+  <script>
+    window.onerror = function (msg, url, line, col, error) {
+      document.body.innerHTML = '<div style="background:black;color:red;padding:20px;font-family:monospace;">' +
+        '<h1>Global Error Caught</h1>' +
+        '<p>' + msg + '</p>' +
+        '<p>' + url + ':' + line + ':' + col + '</p>' +
+        '<pre>' + (error ? error.stack : 'No stack trace') + '</pre>' +
+        '</div>';
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function (event) {
+      document.body.innerHTML = '<div style="background:black;color:red;padding:20px;font-family:monospace;">' +
+        '<h1>Unhandled Promise Rejection</h1>' +
+        '<p>' + event.reason + '</p>' +
+        '</div>';
+    });
+  </script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
