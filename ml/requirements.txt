@@ -1,0 +1,14 @@
+torch>=2.6.0
+pytorch-lightning>=2.0.0
+ruptures
+numpy
+mlflow
+scikit-learn
+fastapi
+uvicorn
+pandas
+transformers
+scipy
+torchmetrics
+yfinance
+redis
