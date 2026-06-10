@@ -1,0 +1,79 @@
+# ===========================================
+# LARGE DATA FILES - EXCLUDE
+# ===========================================
+# MLflow runs (huge checkpoint logs)
+mlruns/
+ml/mlruns/
+**/mlruns/
+
+# Raw dataset folder
+ml_dataset/
+
+# Large generated data (mounted at runtime via volumes)
+ml/market_data.csv
+ml/narratives.json
+ml/checkpoints/
+**/checkpoints/
+
+# Huggingface cache (transformer models)
+**/.cache/
+**/huggingface/
+
+# ===========================================
+# Python caches
+# ===========================================
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+
+# ===========================================
+# Virtual environments
+# ===========================================
+venv/
+.venv/
+env/
+.env
+
+# ===========================================
+# Node modules (reinstalled in container)
+# ===========================================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ===========================================
+# Git metadata
+# ===========================================
+.git/
+.gitignore
+
+# ===========================================
+# IDE / Editor files
+# ===========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# ===========================================
+# OS files
+# ===========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===========================================
+# Logs and temp files
+# ===========================================
+*.log
+logs/
+tmp/
+temp/

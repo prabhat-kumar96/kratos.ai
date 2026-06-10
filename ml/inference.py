@@ -1,3 +1,8 @@
+# ===================================================
+# Kratos.ai - Model Inference Script
+# Project Lead: Prabhat Kumar
+# Team: Prabhat, Devesh, Gaurav
+# ===================================================
 import argparse
 import json
 import os

@@ -1,3 +1,8 @@
+# ===================================================
+# Kratos.ai - Model Training Script
+# Project Lead: Prabhat Kumar
+# Team: Prabhat, Devesh, Gaurav
+# ===================================================
 import torch
 import pytorch_lightning as L
 from pytorch_lightning.loggers import MLFlowLogger

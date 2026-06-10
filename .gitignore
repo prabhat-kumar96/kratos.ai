@@ -1,0 +1,32 @@
+# Dependency directories
+node_modules/
+__pycache__/
+venv/
+.env
+
+myenv/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ML artifacts
+mlruns/
+llm/src/.env.example
+
+# Datasets & Training Data
+ml_dataset/
+ml/*.csv
+ml/*.json
+
+# Local Docker overrides
+docker-compose.override.yml
