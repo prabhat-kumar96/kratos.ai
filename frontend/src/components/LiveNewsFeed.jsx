@@ -62,29 +62,39 @@ export default function LiveNewsFeed({ ticker }) {
             </div>
 
             <div className="overflow-y-auto flex-1 p-4 space-y-3 custom-scrollbar">
-                {news.map((item) => (
-                    <div key={item.id} className="bg-gray-800/50 p-4 rounded-lg border border-white/5 hover:bg-gray-800 transition-colors group">
-                        <div className="flex justify-between items-start gap-4">
-                            <h4 className="text-white font-medium leading-snug group-hover:text-indigo-300 transition-colors">
-                                {item.headline}
-                            </h4>
-                            <span className={`
-                                text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold shrink-0
-                                ${item.sentiment === 'Positive' ? 'bg-green-500/20 text-green-400' :
-                                    item.sentiment === 'Negative' ? 'bg-red-500/20 text-red-400' :
-                                        'bg-gray-500/20 text-gray-400'}
-                            `}>
-                                {item.sentiment}
-                            </span>
+                {news.map((item) => {
+                    const hasLink = item.link && item.link.startsWith('http');
+                    return (
+                        <div
+                            key={item.id}
+                            onClick={() => hasLink && window.open(item.link, '_blank', 'noopener,noreferrer')}
+                            className={`bg-gray-800/50 p-4 rounded-lg border border-white/5 hover:bg-gray-800 transition-colors group ${hasLink ? 'cursor-pointer' : 'cursor-default'}`}
+                        >
+                            <div className="flex justify-between items-start gap-4">
+                                <h4 className={`font-medium leading-snug transition-colors text-white ${hasLink ? 'group-hover:text-indigo-300 group-hover:underline' : ''}`}>
+                                    {item.headline}
+                                </h4>
+                                <span className={`
+                                    text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold shrink-0
+                                    ${item.sentiment === 'Positive' ? 'bg-green-500/20 text-green-400' :
+                                        item.sentiment === 'Negative' ? 'bg-red-500/20 text-red-400' :
+                                            'bg-gray-500/20 text-gray-400'}
+                                `}>
+                                    {item.sentiment}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                                <span>{item.source} • {new Date(item.published_at).toLocaleDateString()}</span>
+                                {hasLink && (
+                                    <span className="flex items-center gap-1 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ExternalLink className="w-3 h-3" />
+                                        Read more
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                                {item.source} • {new Date(item.published_at).toLocaleDateString()}
-                            </span>
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="p-3 bg-indigo-900/10 border-t border-indigo-500/20 text-center">
