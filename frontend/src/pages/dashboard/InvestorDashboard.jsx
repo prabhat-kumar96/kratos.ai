@@ -28,7 +28,8 @@ export default function InvestorDashboard() {
         "GOOGL": { reliability_score: 90, regime: "Stable Growth", prediction: 0.70 },
         "AMZN": { reliability_score: 87, regime: "Stable Growth", prediction: 0.82 },
         "META": { reliability_score: 55, regime: "Correction", prediction: 0.35 },
-        "NFLX": { reliability_score: 81, regime: "Stable Growth", prediction: 0.60 }
+        "NFLX": { reliability_score: 81, regime: "Stable Growth", prediction: 0.60 },
+        "WMT": { reliability_score: 88, regime: "Stable Growth", prediction: 0.76 }
     };
 
     const [socketStatus, setSocketStatus] = useState("disconnected"); // 'connected' | 'disconnected' | 'error'

@@ -154,6 +154,22 @@ export default function CompanyDetails() {
                 "Gaming initiative remains small but increases engagement and retention for the core service.",
                 "Pricing power remains strong, with recent hikes showing minimal churn impact."
             ]
+        },
+        "WMT": {
+            reliability_score: 88,
+            regime: "Stable Growth",
+            prediction: 0.76,
+            regime_id: 0,
+            narrative: [
+                "Strong Q2 retail earnings driven by gains across grocery and value-focused demographic segments.",
+                "E-commerce sales expanded over 22% YoY as delivery speed and Marketplace seller options improved.",
+                "Walmart Connect advertising platform provides a fast-growing, high-margin revenue stream.",
+                "Inventory levels are lean and highly optimized, mitigating markdown risks ahead of key shopping seasons.",
+                "Value proposition continues to capture market share from traditional department stores and regional chains.",
+                "Supply chain automation and store fulfillment hubs are driving operational leverage.",
+                "Strong balance sheet supports ongoing share buybacks and dividend growth.",
+                "Defensive consumer staple positioning provides strong downside protection against macroeconomic shifts."
+            ]
         }
     };
     const [data, setData] = useState(null);
