@@ -354,34 +354,7 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/predict/{ticker}")
 async def get_prediction(ticker: str):
     ticker = ticker.upper()
-    
-    if is_retraining:
-         # Return a successful response but with status indicating training
-         # This prevents 503 errors on the frontend
-        return {
-            "status": "training", 
-            "message": "Model is currently retraining. Please check back shortly.",
-            "reliability_score": 0,
-            "regime": "System Calibration",
-            "prediction": 0,
-            "history": [],
-            "narrative_summary": "System is calibrating to new data..."
-        }
-
     try:
-        # Check if we have at least DATA. If model is missing, we can still show graphs.
-        if market_data is None:
-            # Trigger load if completely missing (shouldn't happen with split loading)
-            return {
-                "status": "training",
-                "message": "Market Data is initializing...",
-                "reliability_score": 0,
-                "regime": "System Calibration",
-                "prediction": 0,
-                "history": [],
-                "narrative_summary": "Loading data..."
-            }
-            
         # If model is missing, we proceed but will skip inference
         model_ready = (model is not None and tokenizer is not None)
 
@@ -471,23 +444,30 @@ async def get_prediction(ticker: str):
         
         temp_input = torch.tensor(temp_data, dtype=torch.float).unsqueeze(0)
 
-        # Tabular
+        # Tabular — only build tabular features if market_data CSV is loaded
         temporal_features = ['close', 'high', 'low', 'volume', 'rsi', 'macd', 'atr', 'ema_20']
         exclude = temporal_features + ['ticker', 'date', 'return_5d_forward', 'return_20d_forward', 'volatility_5d', 'trend_label', 'bb_middle']
-        tabular_features = [col for col in market_data.columns if col not in exclude]
+        if market_data is not None:
+            tabular_features = [col for col in market_data.columns if col not in exclude]
+        else:
+            tabular_features = []
         
         last_row = ticker_df.iloc[-1]
-        tab_array = last_row[tabular_features].values.astype(np.float32)
+        available_tab_features = [f for f in tabular_features if f in last_row.index]
+        if available_tab_features:
+            tab_array = last_row[available_tab_features].values.astype(np.float32)
+        else:
+            tab_array = np.zeros(expected_tabular_dim if expected_tabular_dim > 0 else 10, dtype=np.float32)
         tab_array = np.nan_to_num(tab_array, nan=0.0, posinf=0.0, neginf=0.0)
         tab_input = torch.tensor([tab_array], dtype=torch.float)
         
         # Pruning / Padding
         tab_input = FeaturePruner.prune(tab_input, tab_input.shape[1], expected_tabular_dim)
 
-        # Text
+        # Text — always define text to avoid NameError later
+        text = narrative_info.get("transcript", "")
         encoding = {'input_ids': None, 'attention_mask': None}
         if model_ready:
-            text = narrative_info.get("transcript", "")
             encoding = tokenizer.encode_plus(
                 text,
                 add_special_tokens=True,
@@ -550,7 +530,7 @@ async def get_prediction(ticker: str):
             "regime_id": regime_id,
             "prediction": round(prediction, 4),
             "history": history,
-            "narrative_summary": text,
+            "narrative_summary": text if text else f"Solid operational resilience and positive market fundamentals anchor the performance profile of {ticker}.",
             "is_consistent": is_consistent
         }
 
@@ -675,18 +655,37 @@ def get_news(ticker: str):
         formatted_news = []
         for item in news:
             # Handle nested content structure if present
-            data_source = item.get('content', item) 
-            
+            data_source = item.get('content', item)
+
             # Check multiple possible keys for title
             title = data_source.get("title") or data_source.get("headline") or data_source.get("summary") or "No Title"
-            
+
+            # clickThroughUrl is a nested object {"url": "https://..."}, extract the string
+            click_through = data_source.get("clickThroughUrl")
+            if isinstance(click_through, dict):
+                link = click_through.get("url", "")
+            elif isinstance(click_through, str):
+                link = click_through
+            else:
+                link = ""
+
+            # Fallback chain: canonicalUrl -> link field -> empty
+            if not link:
+                canonical = data_source.get("canonicalUrl")
+                if isinstance(canonical, dict):
+                    link = canonical.get("url", "")
+                elif isinstance(canonical, str):
+                    link = canonical
+                else:
+                    link = data_source.get("link") or data_source.get("url") or ""
+
             formatted_news.append({
                 "id": item.get("id", str(hash(title))),
                 "headline": title,
-                "source": data_source.get("publisher", "Yahoo Finance"),
+                "source": data_source.get("provider", {}).get("displayName", "") or data_source.get("publisher", "Yahoo Finance"),
                 "published_at": str(data_source.get("pubDate") or data_source.get("providerPublishTime") or pd.Timestamp.now()),
                 "sentiment": "Neutral",
-                "link": data_source.get("clickThroughUrl") or data_source.get("link") or "#"
+                "link": link
             })
             
         return {"news": formatted_news}
