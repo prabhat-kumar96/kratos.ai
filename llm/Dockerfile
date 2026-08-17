@@ -25,6 +25,9 @@ RUN pip install --no-cache-dir \
 # Copy source code
 COPY . .
 
+# Ensure src is a proper Python package
+RUN touch src/__init__.py
+
 # Expose port
 EXPOSE 8002
 
