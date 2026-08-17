@@ -34,11 +34,14 @@ training_process = None
 expected_tabular_dim = 0
 redis_client = None
 
-# Using 'redis' as hostname because of Docker networking
+# Read Redis URL from environment variable (Render/production) or fall back to Docker hostname (local dev)
+_redis_url = os.environ.get('REDIS_URL', 'redis://redis:6379')
 try:
-    redis_client = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+    redis_client = redis.Redis.from_url(_redis_url, decode_responses=True)
+    redis_client.ping()  # Validate connection at startup
 except Exception as e:
     print(f"WARNING: Redis connection failed: {e}")
+    redis_client = None
 
 import random
 
@@ -273,7 +276,7 @@ def load_resources_blocking():
     print("INFO: Loading Tokenizer...", flush=True)
     tokenizer_instance = None
     try:
-        tokenizer_instance = AutoTokenizer.from_pretrained('yiyanghkust/finbert-pretrain')
+        tokenizer_instance = AutoTokenizer.from_pretrained('ProsusAI/finbert')
     except Exception as e:
          print(f"WARNING: Tokenizer download failed: {e}. using fallback.", flush=True)
          # In a real scenario, we might want to fail hard, or use a local fallback

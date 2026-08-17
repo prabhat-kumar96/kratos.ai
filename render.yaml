@@ -108,9 +108,9 @@ services:
       - key: CHECKPOINT_PATH
         value: /app/checkpoints  # mount a persistent disk below if needed
 
-      # Redis (optional — only needed if ml service uses it for caching/pub-sub)
-      # - key: REDIS_URL
-      #   sync: false
+      # Redis pub-sub — set this to your Render Redis internal URL or Upstash URL
+      - key: REDIS_URL
+        sync: false
 
 # =============================================================================
 # PERSISTENT DISK (optional — for ML model checkpoints)

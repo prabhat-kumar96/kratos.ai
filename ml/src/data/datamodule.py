@@ -8,7 +8,7 @@ import json
 import os
 
 class MarketDataset(Dataset):
-    def __init__(self, df, narratives, window_size=5, tokenizer_name='yiyanghkust/finbert-pretrain', max_len=64):
+    def __init__(self, df, narratives, window_size=5, tokenizer_name='ProsusAI/finbert', max_len=64):
         self.df = df.copy()
         self.narratives = {n['ticker']: n for n in narratives}
         self.window_size = window_size

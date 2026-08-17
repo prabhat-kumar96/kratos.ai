@@ -36,7 +36,7 @@ class TabularEncoder(nn.Module):
 
 class TextEncoder(nn.Module):
     """FinBERT-based encoder for news headlines and reports."""
-    def __init__(self, model_name='yiyanghkust/finbert-pretrain', latent_dim=128, freeze=True):
+    def __init__(self, model_name='ProsusAI/finbert', latent_dim=128, freeze=True):
         super().__init__()
         self.bert = AutoModel.from_pretrained(model_name)
         
