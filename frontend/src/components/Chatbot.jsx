@@ -8,7 +8,7 @@ export default function Chatbot() {
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { role: "bot", content: "Hello! I'm Aletheia AI. Ask me about market data or narratives." }
+        { role: "bot", content: "Hello! I'm Kratos AI. Ask me about market data or narratives." }
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ export default function Chatbot() {
                                     <Bot className="w-5 h-5 text-blue-400" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-white">Aletheia AI</h3>
+                                    <h3 className="font-semibold text-white">Kratos AI</h3>
                                     <p className="text-xs text-gray-400">Market Intelligence Agent</p>
                                 </div>
                             </div>

@@ -191,7 +191,7 @@ export const getIntelligence = async (req, res) => {
                 history,
                 source: "static_analysis",
                 system_status: "online",
-                message: "Analysis provided by Aletheia Intelligence (Static Mode)"
+                message: "Analysis provided by Kratos AI (Static Mode)"
             });
         }
 

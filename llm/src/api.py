@@ -19,7 +19,7 @@ load_dotenv()
 from src.agent import app as agent_app
 
 # Initialize FastAPI
-app = FastAPI(title="Aletheia AI Chatbot")
+app = FastAPI(title="Kratos AI Chatbot")
 
 class ChatRequest(BaseModel):
     query: str
@@ -31,7 +31,7 @@ class ChatResponse(BaseModel):
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    Endpoint to interact with the Aletheia AI Agent.
+    Endpoint to interact with the Kratos AI Agent.
     """
     try:
         # Prepare initial state
