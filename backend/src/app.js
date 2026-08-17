@@ -6,48 +6,64 @@ import chatRouter from './routes/chat.routes.js'
 import newsRouter from './routes/news.routes.js'
 import extensionRouter from './routes/extension.routes.js'
 
-
 const app = express()
+
+// ---------------------------------------------------------------------------
+// CORS Configuration
+// CORS_ORIGIN env var accepts a comma-separated list of allowed origins.
+// Example: "https://kratos-ai.vercel.app,http://localhost:5173"
+// For local dev only, set CORS_ORIGIN=* and credentials handling is skipped.
+// ---------------------------------------------------------------------------
+const buildAllowedOrigins = () => {
+    const base = [
+        'http://localhost:5173', // Vite dev server
+        'http://localhost:3001', // Docker compose frontend
+    ];
+    const envVal = process.env.CORS_ORIGIN || '';
+    if (envVal === '*') return '*'; // wildcard (dev only — cookies won't work)
+    const fromEnv = envVal
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean);
+    return [...new Set([...base, ...fromEnv])];
+};
+
+const allowedOrigins = buildAllowedOrigins();
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
+        // Allow server-to-server and curl requests (no Origin header)
         if (!origin) return callback(null, true);
 
-        // List of allowed origins
-        const allowedOrigins = [
-            'http://localhost:5173', // Vite Dev
-            'http://localhost:3001', // Docker Frontend
-            process.env.CORS_ORIGIN // Environment variable
-        ];
-
-        // Allow Chrome extension origins (chrome-extension://)
-        if (origin && origin.startsWith('chrome-extension://')) {
+        // Always allow Chrome extension requests
+        if (origin.startsWith('chrome-extension://')) {
             return callback(null, true);
         }
 
-        if (allowedOrigins.indexOf(origin) !== -1 || process.env.CORS_ORIGIN === "*") {
-            // Note: if CORS_ORIGIN is *, credentials: true will still fail in browser for *
-            // So we ideally shouldn't use * if we need credentials.
-            // This logic allows specific matches.
-            callback(null, true)
+        // Wildcard mode (dev only — credentials won't work with this)
+        if (allowedOrigins === '*') return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
         } else {
-            // For development, we might just allow it if it includes localhost?
-            // Safer to just allow all localhosts for now or rely on the list.
-            callback(null, true) // Temporarily allow all for debugging if above fails? 
-            // No, let's stick to the list + reflection.
-            // better yet: just reflect the origin if it matches localhost
-            // callback(new Error('Not allowed by CORS'))
+            callback(new Error(`CORS: origin '${origin}' not allowed`));
         }
     },
-    credentials: true
-})) //to accept cookies from frontend
+    credentials: true,   // Required for cookie-based auth (withCredentials: true)
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Set-Cookie'],
+}))
 
-app.use(express.json({ limit: "1mb" })) //to parse json data from request body (increased for extension)
+// Health check endpoint (used by Render for liveness probing)
+app.get('/api/v1/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', service: 'kratos-backend' });
+});
+
+app.use(express.json({ limit: "1mb" }))
 app.use(express.urlencoded({ extended: true, limit: "1mb" }))
-app.use(express.static("public")) //to serve static files from the public directory
-app.use(cookieParser()) //to parse cookies from request headers
-
+app.use(express.static("public"))
+app.use(cookieParser())
 
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/chat", chatRouter)
@@ -56,6 +72,5 @@ app.use("/api", extensionRouter)
 
 import { errorMiddleware } from "./middlewares/error.middleware.js"
 app.use(errorMiddleware)
-
 
 export { app }

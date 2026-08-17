@@ -2,7 +2,7 @@
 node_modules/
 __pycache__/
 venv/
-.env
+.env*
 
 myenv/
 
@@ -30,3 +30,10 @@ ml/*.json
 
 # Local Docker overrides
 docker-compose.override.yml
+
+# The .env.production template (with CHANGE_ME placeholders) IS tracked.
+# After filling in real values, rename to .env.production.local or protect it.
+# Alternatively, add these lines to protect the live secret file:
+# .env.production.local
+# backend/.env.production.local
+# frontend/.env.production.local

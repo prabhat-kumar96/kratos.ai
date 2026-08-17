@@ -15,10 +15,21 @@ import { Server } from 'socket.io';
 import { createClient } from 'redis';
 
 const server = createServer(app);
+
+// Mirror the same CORS_ORIGIN list for Socket.io WebSocket transport
+const socketOrigins = (process.env.CORS_ORIGIN || '*') === '*'
+    ? '*'
+    : [
+        'http://localhost:5173',
+        'http://localhost:3001',
+        ...(process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean),
+    ];
+
 const io = new Server(server, {
     cors: {
-        origin: process.env.CORS_ORIGIN || "*",
-        methods: ["GET", "POST"]
+        origin: socketOrigins,
+        methods: ["GET", "POST"],
+        credentials: true,
     }
 });
 
