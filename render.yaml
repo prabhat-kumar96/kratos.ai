@@ -108,6 +108,11 @@ services:
       - key: CHECKPOINT_PATH
         value: /app/checkpoints  # mount a persistent disk below if needed
 
+      # Hugging Face token — required to download gated/private models from the Hub
+      # Get yours at: https://huggingface.co/settings/tokens (read access is enough)
+      - key: HF_TOKEN
+        sync: false
+
       # Redis pub-sub — set this to your Render Redis internal URL or Upstash URL
       - key: REDIS_URL
         sync: false
