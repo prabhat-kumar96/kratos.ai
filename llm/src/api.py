@@ -16,10 +16,21 @@ load_dotenv(dotenv_path=env_path)
 load_dotenv()
 
 # Import the LangGraph app
-from src.agent import app as agent_app
+try:
+    from src.agent import app as agent_app
+except ImportError:
+    from agent import app as agent_app
 
 # Initialize FastAPI
 app = FastAPI(title="Kratos AI Chatbot")
+
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "kratos-llm"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 class ChatRequest(BaseModel):
     query: str

@@ -5,18 +5,27 @@ from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 import operator
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Import our custom tools
-from src.tools import financial_comparator_tool, diagnostic_tool, document_rag_tool
+try:
+    from src.tools import financial_comparator_tool, diagnostic_tool, document_rag_tool
+except ImportError:
+    from tools import financial_comparator_tool, diagnostic_tool, document_rag_tool
 
 # --- State Definition ---
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
     context: str # to store tool outputs or additional context if needed
 
+groq_api_key = os.getenv("GROQ_API_KEY") or "gsk_dummy_placeholder_for_init"
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0.1
+    temperature=0.1,
+    groq_api_key=groq_api_key
 )
 
 # Bind tools to the LLM for the router

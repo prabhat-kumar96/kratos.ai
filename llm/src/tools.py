@@ -13,10 +13,11 @@ CSV_PATH = os.path.join(DATA_DIR, "market_data.csv")
 JSON_PATH = os.path.join(DATA_DIR, "narratives.json")
 
 # Initialize LLM for the Pandas Agent
-# Note: GROQ_API_KEY should be in environment variables
+groq_api_key = os.getenv("GROQ_API_KEY") or "gsk_dummy_placeholder_for_init"
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0.1
+    temperature=0.1,
+    groq_api_key=groq_api_key
 )
 
 @tool
