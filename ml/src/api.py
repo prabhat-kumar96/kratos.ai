@@ -295,24 +295,53 @@ def load_data_blocking():
         print("INFO: market_data.csv not found. Auto-generating from yfinance...", flush=True)
         try:
             import yfinance as yf_gen
+            import time as _time
             TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "AMD", "NFLX", "INTC"]
+
+            # Batch download — single request, avoids per-ticker rate limits
+            raw = yf_gen.download(TICKERS, period="6mo", group_by="ticker", auto_adjust=True, progress=False)
             dfs = []
             for t in TICKERS:
                 try:
-                    hist = yf_gen.Ticker(t).history(period="6mo")
-                    if hist.empty:
+                    if t in raw.columns.get_level_values(0):
+                        df_t = raw[t].dropna(how="all").copy()
+                    else:
+                        df_t = raw.copy()  # single-ticker fallback
+                    if df_t.empty:
                         continue
-                    hist.reset_index(inplace=True)
-                    hist.columns = [c.lower() for c in hist.columns]
-                    if 'datetime' in hist.columns:
-                        hist.rename(columns={'datetime': 'date'}, inplace=True)
-                    hist['ticker'] = t
+                    df_t.reset_index(inplace=True)
+                    df_t.columns = [c.lower() for c in df_t.columns]
+                    if 'datetime' in df_t.columns:
+                        df_t.rename(columns={'datetime': 'date'}, inplace=True)
+                    df_t['ticker'] = t
                     for col in ['rsi', 'macd', 'atr', 'ema_20']:
-                        if col not in hist.columns:
-                            hist[col] = 0.0
-                    dfs.append(hist)
+                        if col not in df_t.columns:
+                            df_t[col] = 0.0
+                    dfs.append(df_t)
                 except Exception as ex:
-                    print(f"WARNING: Could not fetch {t}: {ex}", flush=True)
+                    print(f"WARNING: Could not process {t}: {ex}", flush=True)
+
+            # Retry individual tickers that failed, with a polite delay
+            if not dfs:
+                print("INFO: Batch download failed, retrying tickers individually with delay...", flush=True)
+                for t in TICKERS:
+                    try:
+                        _time.sleep(1.5)
+                        hist = yf_gen.Ticker(t).history(period="6mo")
+                        if hist.empty:
+                            continue
+                        hist.reset_index(inplace=True)
+                        hist.columns = [c.lower() for c in hist.columns]
+                        if 'datetime' in hist.columns:
+                            hist.rename(columns={'datetime': 'date'}, inplace=True)
+                        hist['ticker'] = t
+                        for col in ['rsi', 'macd', 'atr', 'ema_20']:
+                            if col not in hist.columns:
+                                hist[col] = 0.0
+                        dfs.append(hist)
+                    except Exception as ex:
+                        print(f"WARNING: Could not fetch {t}: {ex}", flush=True)
+
             if dfs:
                 generated = pd.concat(dfs, ignore_index=True)
                 generated.to_csv(market_csv_path, index=False)
@@ -321,6 +350,7 @@ def load_data_blocking():
                 print("WARNING: Auto-generation produced no data. Proceeding without CSV.", flush=True)
         except Exception as e:
             print(f"WARNING: Auto-generation failed: {e}. Proceeding without CSV.", flush=True)
+
 
     _market_data = None
     if os.path.exists(market_csv_path):
