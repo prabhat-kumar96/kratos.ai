@@ -285,11 +285,43 @@ def load_resources_blocking():
     return model_instance, tokenizer_instance, _needs_retraining
 
 def load_data_blocking():
-    """Fast data loader."""
+    """Fast data loader. Auto-generates market_data.csv from yfinance if missing."""
     base_dir = os.getcwd() 
     market_csv_path = os.path.join(base_dir, "market_data.csv")
     narratives_json_path = os.path.join(base_dir, "narratives.json")
-    
+
+    # --- Auto-generate CSV if missing ---
+    if not os.path.exists(market_csv_path):
+        print("INFO: market_data.csv not found. Auto-generating from yfinance...", flush=True)
+        try:
+            import yfinance as yf_gen
+            TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "AMD", "NFLX", "INTC"]
+            dfs = []
+            for t in TICKERS:
+                try:
+                    hist = yf_gen.Ticker(t).history(period="6mo")
+                    if hist.empty:
+                        continue
+                    hist.reset_index(inplace=True)
+                    hist.columns = [c.lower() for c in hist.columns]
+                    if 'datetime' in hist.columns:
+                        hist.rename(columns={'datetime': 'date'}, inplace=True)
+                    hist['ticker'] = t
+                    for col in ['rsi', 'macd', 'atr', 'ema_20']:
+                        if col not in hist.columns:
+                            hist[col] = 0.0
+                    dfs.append(hist)
+                except Exception as ex:
+                    print(f"WARNING: Could not fetch {t}: {ex}", flush=True)
+            if dfs:
+                generated = pd.concat(dfs, ignore_index=True)
+                generated.to_csv(market_csv_path, index=False)
+                print(f"INFO: Auto-generated market_data.csv with {len(generated)} rows for {len(dfs)} tickers.", flush=True)
+            else:
+                print("WARNING: Auto-generation produced no data. Proceeding without CSV.", flush=True)
+        except Exception as e:
+            print(f"WARNING: Auto-generation failed: {e}. Proceeding without CSV.", flush=True)
+
     _market_data = None
     if os.path.exists(market_csv_path):
         df = pd.read_csv(market_csv_path)
@@ -307,7 +339,7 @@ def load_data_blocking():
              
         _market_data = df
     else:
-        print("WARNING: market_data.csv missing")
+        print("WARNING: market_data.csv still missing after auto-generation attempt.")
 
     _narratives_data = {}
     if os.path.exists(narratives_json_path):
