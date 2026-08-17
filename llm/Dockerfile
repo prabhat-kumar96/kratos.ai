@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir \
 COPY . .
 
 # Ensure src is a proper Python package
-RUN touch src/__init__.py
+RUN mkdir -p src && touch src/__init__.py
 
 # Expose port
 EXPOSE 8002
