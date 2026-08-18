@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import api, { BACKEND_ORIGIN } from '../../lib/axios';
 import { ArrowLeft, TrendingUp, TrendingDown, Wallet, DollarSign, PieChart, Activity, Trash2, ShoppingCart, Briefcase } from 'lucide-react';
 import BuyModal from '../../components/BuyModal';
 import SellModal from '../../components/SellModal';
@@ -37,9 +38,7 @@ export default function PortfolioDashboard() {
 
     const fetchPortfolio = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/v1/portfolio', {
-                withCredentials: true
-            });
+            const response = await api.get('/portfolio');
             setPortfolio(response.data.portfolio);
         } catch (err) {
             console.error('Failed to fetch portfolio:', err);
@@ -52,7 +51,7 @@ export default function PortfolioDashboard() {
     const fetchCompanies = async () => {
         setLoadingCompanies(true);
         try {
-            const response = await axios.get('http://localhost:8000/api/intelligence/tickers');
+            const response = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/tickers`);
             setCompanies(response.data || []);
         } catch (err) {
             console.error('Failed to fetch companies:', err);
@@ -64,9 +63,7 @@ export default function PortfolioDashboard() {
     const fetchHoldings = async () => {
         setLoadingHoldings(true);
         try {
-            const response = await axios.get('http://localhost:8000/api/v1/holdings', {
-                withCredentials: true
-            });
+            const response = await api.get('/holdings');
             setHoldings(response.data.holdings || []);
         } catch (err) {
             console.error('Failed to fetch holdings:', err);
@@ -78,9 +75,7 @@ export default function PortfolioDashboard() {
     const handleDeletePortfolio = async () => {
         setDeleting(true);
         try {
-            await axios.delete('http://localhost:8000/api/v1/portfolio', {
-                withCredentials: true
-            });
+            await api.delete('/portfolio');
 
             // Redirect to dashboard after successful deletion
             navigate('/dashboard/investor');

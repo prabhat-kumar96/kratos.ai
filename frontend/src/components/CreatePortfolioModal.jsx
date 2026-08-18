@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../lib/axios';
 import { X } from 'lucide-react';
 
 export default function CreatePortfolioModal({ onClose, onSuccess }) {
@@ -14,11 +14,9 @@ export default function CreatePortfolioModal({ onClose, onSuccess }) {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/portfolio', {
+            const response = await api.post('/portfolio', {
                 name,
                 initial_capital: initialCapital
-            }, {
-                withCredentials: true
             });
 
             console.log('Portfolio created:', response.data);

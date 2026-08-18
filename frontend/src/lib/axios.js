@@ -4,6 +4,9 @@ import axios from "axios";
 // Check if VITE_API_URL is defined, otherwise fallback to localhost (useful for easy dev)
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
+// Base URL without /api/v1 suffix — used for socket.io and /api/intelligence/... routes
+export const BACKEND_ORIGIN = BASE_URL.replace(/\/api\/v1\/?$/, '') || 'http://localhost:8000';
+
 const api = axios.create({
     baseURL: BASE_URL,
     withCredentials: true, // Important: Send cookies (refresh token) with requests

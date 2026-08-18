@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import { BACKEND_ORIGIN } from "../lib/axios";
 import { AlertTriangle, ArrowLeft, CheckCircle, Brain, Activity, TrendingUp, Zap } from "lucide-react";
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -181,7 +182,7 @@ export default function CompanyDetails() {
         const fetchData = async () => {
             try {
                 // Fetch from our Node backend
-                const response = await axios.get(`http://localhost:8000/api/intelligence/${ticker}`);
+                const response = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/${ticker}`);
 
                 // --- FORCE MOCK HISTORY (User Requested Immediate Fix) ---
                 // We generate realistic looking data on the frontend to bypass backend cache issues immediately.
@@ -272,7 +273,7 @@ export default function CompanyDetails() {
                 // Re-fetch data to see if training finished
                 const fetchUpdate = async () => {
                     try {
-                        const response = await axios.get(`http://localhost:8000/api/intelligence/${ticker}`);
+                        const response = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/${ticker}`);
                         if (response.data.status !== 'training') {
                             const upperTicker = ticker ? ticker.toUpperCase() : "";
                             const mockOverride = MOCK_FRONTEND_DATA[upperTicker];
