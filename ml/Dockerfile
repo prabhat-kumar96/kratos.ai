@@ -15,8 +15,10 @@ RUN pip install --no-cache-dir --prefer-binary -r requirements.txt \
     --index-url https://download.pytorch.org/whl/cpu \
     --extra-index-url https://pypi.org/simple
 
+COPY . .
+
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app:/app/src:$PYTHONPATH
+ENV PYTHONPATH=/app:$PYTHONPATH
 
 EXPOSE 8001
 
