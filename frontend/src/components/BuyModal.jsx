@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../lib/axios';
 import { X, ShoppingCart } from 'lucide-react';
 
 export default function BuyModal({ company, onClose, onSuccess }) {
@@ -15,12 +15,10 @@ export default function BuyModal({ company, onClose, onSuccess }) {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/orders', {
+            const response = await api.post('/orders', {
                 symbol: company.ticker,
                 side: 'BUY',
                 quantity: parseInt(quantity)
-            }, {
-                withCredentials: true
             });
 
             console.log('Order placed:', response.data);

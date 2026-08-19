@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../lib/axios';
 import { Newspaper, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function LiveNewsFeed({ ticker }) {
@@ -12,7 +12,7 @@ export default function LiveNewsFeed({ ticker }) {
         setError(null);
         try {
             // Updated URL to match the backend route registration
-            const response = await axios.get(`http://localhost:8000/api/v1/news/${ticker}`);
+            const response = await api.get(`/news/${ticker}`);
             setNews(response.data.news);
         } catch (err) {
             console.error("Failed to load news", err);

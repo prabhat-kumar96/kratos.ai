@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Activity, TrendingUp, Users, DollarSign, Clock, ArrowUpRight } from "lucide-react";
+import api, { BACKEND_ORIGIN } from "../../lib/axios";
 
 export default function StartupDashboard() {
     const [stats, setStats] = useState(null);
@@ -13,9 +14,7 @@ export default function StartupDashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/api/v1/startup/stats", {
-                    withCredentials: true
-                });
+                const response = await api.get("/startup/stats");
                 if (response.data.success) {
                     setStats(response.data);
                 }
@@ -35,7 +34,7 @@ export default function StartupDashboard() {
         if (!stats?.ticker) return;
 
         import("socket.io-client").then(({ io }) => {
-            const socket = io("http://localhost:8000");
+            const socket = io(BACKEND_ORIGIN);
 
             socket.on('connect', () => {
                 console.log('StartupDashboard: Connected to Live Stream');

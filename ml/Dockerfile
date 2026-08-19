@@ -17,5 +17,10 @@ RUN pip install --no-cache-dir --prefer-binary -r requirements.txt \
 
 COPY . .
 
-# Run FastAPI with uvicorn
-CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8001"]
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app:$PYTHONPATH
+
+EXPOSE 8001
+
+# Run FastAPI with uvicorn and dynamic PORT support for Render
+CMD ["sh", "-c", "uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-8001}"]

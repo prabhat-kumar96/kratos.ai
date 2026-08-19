@@ -5,6 +5,7 @@ import { Activity, Search, Shield, ArrowRight, TrendingUp, BarChart2, Radio, Glo
 import { io } from "socket.io-client";
 import LiveNewsFeed from "../../components/LiveNewsFeed";
 import CreatePortfolioModal from "../../components/CreatePortfolioModal";
+import api, { BACKEND_ORIGIN } from "../../lib/axios";
 
 export default function InvestorDashboard() {
     const [viewMode, setViewMode] = useState("overview"); // 'overview' | 'deep_dive'
@@ -39,7 +40,7 @@ export default function InvestorDashboard() {
         const fetchTickers = async () => {
             // ... existing fetch logic ...
             try {
-                const response = await axios.get("http://localhost:8000/api/intelligence/tickers");
+                const response = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/tickers`);
 
                 if (!Array.isArray(response.data)) throw new Error("Invalid data format received.");
 
@@ -73,7 +74,7 @@ export default function InvestorDashboard() {
         };
         fetchTickers();
 
-        const socket = io("http://localhost:8000");
+        const socket = io(BACKEND_ORIGIN);
 
         socket.on('connect', () => {
             console.log('Connected to Live Market Stream');
@@ -108,9 +109,7 @@ export default function InvestorDashboard() {
     useEffect(() => {
         const fetchPortfolio = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/v1/portfolio', {
-                    withCredentials: true
-                });
+                const response = await api.get('/portfolio');
                 setPortfolio(response.data.portfolio);
             } catch (err) {
                 // No portfolio yet - that's okay
@@ -130,7 +129,7 @@ export default function InvestorDashboard() {
         const fetchAnalysis = async () => {
             setIsAnalysisLoading(true);
             try {
-                const res = await axios.get(`http://localhost:8000/api/intelligence/${selectedCompany.ticker}`);
+                const res = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/${selectedCompany.ticker}`);
                 const mock = DASHBOARD_MOCKS[selectedCompany.ticker];
                 setAnalysisData({
                     ...res.data,

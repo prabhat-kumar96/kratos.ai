@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir \
     python-dotenv \
     tabulate
 
-# Copy source code
-COPY . .
+# Copy llm service code (works whether context is repo root or ./llm)
+COPY llm/ .
 
 # Ensure src is a proper Python package and directories are linked
 RUN mkdir -p src && touch src/__init__.py
