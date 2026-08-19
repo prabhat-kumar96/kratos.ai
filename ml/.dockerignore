@@ -1,8 +1,4 @@
-# Exclude large ML data from the ML build context
-mlruns/
-market_data.csv
-narratives.json
-checkpoints/
+# Large ML data exclusion (allow baseline dataset and checkpoints)
 dataset/
 ML_dataset/
 ML_data/

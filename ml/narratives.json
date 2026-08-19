@@ -1,0 +1,42 @@
+[
+  {
+    "ticker": "AAPL",
+    "narrative": "AAPL stock analysis"
+  },
+  {
+    "ticker": "MSFT",
+    "narrative": "MSFT stock analysis"
+  },
+  {
+    "ticker": "GOOGL",
+    "narrative": "GOOGL stock analysis"
+  },
+  {
+    "ticker": "AMZN",
+    "narrative": "AMZN stock analysis"
+  },
+  {
+    "ticker": "NVDA",
+    "narrative": "NVDA stock analysis"
+  },
+  {
+    "ticker": "TSLA",
+    "narrative": "TSLA stock analysis"
+  },
+  {
+    "ticker": "META",
+    "narrative": "META stock analysis"
+  },
+  {
+    "ticker": "AMD",
+    "narrative": "AMD stock analysis"
+  },
+  {
+    "ticker": "NFLX",
+    "narrative": "NFLX stock analysis"
+  },
+  {
+    "ticker": "INTC",
+    "narrative": "INTC stock analysis"
+  }
+]

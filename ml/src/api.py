@@ -237,35 +237,44 @@ def load_resources_blocking():
     base_dir = os.getcwd()
     checkpoint_dir = os.path.join(base_dir, "mlruns")
     
-    # Dynamic Checkpoint Finder
-    def find_latest_checkpoint(mlruns_dir):
+    # Dynamic Checkpoint Finder - searches all standard locations
+    def find_latest_checkpoint():
+        search_dirs = [
+            os.path.join(base_dir, "checkpoints"),
+            os.path.join(base_dir, "ml", "checkpoints"),
+            os.path.join(base_dir, "mlruns"),
+            base_dir
+        ]
+        
+        # Also include env var location if set
+        env_path = os.getenv("CHECKPOINT_PATH")
+        if env_path:
+            if os.path.isfile(env_path) and env_path.endswith(".ckpt"):
+                return env_path
+            if os.path.isdir(env_path):
+                search_dirs.insert(0, env_path)
+
         best_ckpt = None
         best_time = 0
-        if not os.path.exists(mlruns_dir):
-            return None
-            
-        for root, dirs, files in os.walk(mlruns_dir):
-            for file in files:
-                if file.endswith(".ckpt"):
-                    full_path = os.path.join(root, file)
-                    mtime = os.path.getmtime(full_path)
-                    if mtime > best_time:
-                        best_time = mtime
-                        best_ckpt = full_path
+        for d in search_dirs:
+            if not os.path.exists(d):
+                continue
+            for root, dirs, files in os.walk(d):
+                for file in files:
+                    if file.endswith(".ckpt"):
+                        full_path = os.path.join(root, file)
+                        mtime = os.path.getmtime(full_path)
+                        if mtime > best_time:
+                            best_time = mtime
+                            best_ckpt = full_path
         return best_ckpt
 
-    checkpoint_path = find_latest_checkpoint(checkpoint_dir)
+    checkpoint_path = find_latest_checkpoint()
     if checkpoint_path:
         print(f"INFO: Detected latest checkpoint at {checkpoint_path}")
     else:
-        # Fallback to env var if dynamic search failed
-        env_ckpt = os.getenv("CHECKPOINT_PATH")
-        if env_ckpt and os.path.exists(env_ckpt):
-             checkpoint_path = env_ckpt
-             print(f"INFO: Using CHECKPOINT_PATH from env: {checkpoint_path}")
-        else:
-             print("WARNING: No checkpoint found. Model will be uninitialized.")
-             checkpoint_path = ""
+        print("WARNING: No checkpoint found. Model will be uninitialized.")
+        checkpoint_path = ""
 
     # 1. Initialize Model structure
     _temporal_dim = 8
