@@ -19,7 +19,16 @@ import redis
 import yfinance as yf
 from src.models.pipeline import FinancialIntelligencePipeline
 
-app = FastAPI()
+app = FastAPI(title="Kratos ML Service")
+
+@app.get("/")
+@app.head("/")
+def root():
+    return {"status": "ok", "service": "kratos-ml"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "kratos-ml"}
 
 # Global variables to store loaded components
 market_data = None

@@ -15,7 +15,10 @@ RUN pip install --no-cache-dir --prefer-binary -r requirements.txt \
     --index-url https://download.pytorch.org/whl/cpu \
     --extra-index-url https://pypi.org/simple
 
-COPY . .
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app:/app/src:$PYTHONPATH
 
-# Run FastAPI with uvicorn
-CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8001"]
+EXPOSE 8001
+
+# Run FastAPI with uvicorn and dynamic PORT support for Render
+CMD ["sh", "-c", "uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-8001}"]
