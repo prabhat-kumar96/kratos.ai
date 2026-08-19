@@ -47,6 +47,15 @@ class TextEncoder(nn.Module):
         if freeze:
             for param in self.bert.parameters():
                 param.requires_grad = False
+            
+            # Dynamic INT8 quantization: reduces model RAM from ~440MB to ~110MB on CPU
+            try:
+                self.bert = torch.quantization.quantize_dynamic(
+                    self.bert, {nn.Linear}, dtype=torch.qint8
+                )
+                print("INFO: FinBERT successfully quantized to INT8 (reduced RAM by ~75%).", flush=True)
+            except Exception as q_err:
+                print(f"WARNING: Quantization skipped: {q_err}", flush=True)
                 
         self.projection = nn.Linear(self.bert.config.hidden_size, latent_dim)
 
