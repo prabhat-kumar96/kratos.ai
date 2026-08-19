@@ -621,7 +621,7 @@ async def get_prediction(ticker: str):
         }
 
 @app.get("/tickers")
-def get_tickers():
+async def get_tickers():
     """Returns a list of available tickers with summary stats (Live + Analyzed)."""
     
     # 1. Define Live Tickers List (Popular Tech & Finance)
@@ -639,35 +639,41 @@ def get_tickers():
     
     summary = []
     
-    # 2. Fetch Live Data via YFinance (Batch fetching is faster)
+    # 2. Fetch Live Data via YFinance in a thread (non-blocking)
     try:
-        import yfinance as yf
-        # Fetch data for alltickers at once
         tickers_str = " ".join(all_tickers)
-        live_data = yf.Tickers(tickers_str)
-        
+
+        # Run the blocking yfinance call in a separate thread so we don't freeze the event loop
+        def fetch_live_tickers():
+            return yf.Tickers(tickers_str)
+
+        try:
+            live_data = await asyncio.wait_for(
+                asyncio.to_thread(fetch_live_tickers),
+                timeout=20.0  # Hard cap: if yfinance stalls >20s, give up and use CSV fallback
+            )
+        except asyncio.TimeoutError:
+            print("WARNING: yf.Tickers() timed out after 20s. Falling back to CSV data.", flush=True)
+            live_data = None
+
         for ticker in all_tickers:
-            # FIXED: Always mark as analyzed to allow frontend to fetch predictions/fallback graphs
-            # The /predict endpoint handles the fallback if CSV data is missing.
-            is_analyzed = True 
-            
+            is_analyzed = True
+
             try:
-                # Try to get live data first
+                if live_data is None:
+                    raise ValueError("Live data fetch timed out")
+                
                 info = live_data.tickers[ticker].fast_info
-                # Fallback to market_data if live fetch fails or is strangely empty (though fast_info usually reliable)
                 if info is None or not hasattr(info, 'last_price'):
                     raise ValueError("No live data")
                 
                 price = round(info.last_price, 2)
                 prev_close = info.previous_close
-                if prev_close:
-                    change_pct = round(((price - prev_close) / prev_close) * 100, 2)
-                else:
-                    change_pct = 0.0
+                change_pct = round(((price - prev_close) / prev_close) * 100, 2) if prev_close else 0.0
                      
                 summary.append({
                     "ticker": ticker,
-                    "name": ticker, # simplified, can get full name if needed but requires .info which is slower
+                    "name": ticker,
                     "price": price,
                     "change": change_pct,
                     "is_analyzed": is_analyzed
@@ -675,7 +681,7 @@ def get_tickers():
                 
             except Exception as e:
                 # Fallback to local CSV data if live fails
-                if is_analyzed:
+                if market_data is not None and is_analyzed:
                     ticker_df = market_data[market_data['ticker'] == ticker]
                     if not ticker_df.empty:
                         last_row = ticker_df.iloc[-1]
@@ -687,9 +693,8 @@ def get_tickers():
                             "is_analyzed": True,
                             "source": "historical_fallback"
                         })
-    except ImportError:
-        # Fallback if yfinance not installed (should verify installation first)
-        print("WARNING: yfinance not installed. Returning only csv data.")
+    except Exception as e:
+        print(f"WARNING: Ticker fetch failed entirely: {e}")
         if market_data is not None:
             for ticker in unique_tickers:
                 ticker_df = market_data[market_data['ticker'] == ticker]
