@@ -180,8 +180,16 @@ def load_state_with_strict_fix(model, state_dict):
     model.load_state_dict(filtered_state_dict, strict=False)
 
 def trigger_retraining():
-    """Triggers the training script in a separate process."""
+    """Triggers the training script in a separate process if enabled."""
     global is_retraining, training_process
+
+    # In production inference, auto-retraining spawns PyTorch Lightning multi-process training
+    # which exceeds container RAM limits (OOM 137). Only run if explicitly enabled.
+    auto_retrain_enabled = os.getenv("ENABLE_AUTO_RETRAIN", "false").lower() in ("true", "1", "yes")
+    if not auto_retrain_enabled:
+        print("INFO: Auto-retraining skipped (ENABLE_AUTO_RETRAIN=false). Running in zero-shot/inference mode.", flush=True)
+        return
+
     if is_retraining and training_process is not None:
         if training_process.poll() is None:
             print("INFO: Training already in progress.")

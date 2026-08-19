@@ -38,8 +38,8 @@ def train():
             _json.dump([], f)
         print(f"INFO: Created empty narratives.json at {json_path}")
 
-    # 2. Setup DataModule
-    dm = FinancialDataModule(csv_path, json_path, window_size=5, batch_size=128, num_workers=4, persistent_workers=True)
+    # 2. Setup DataModule (num_workers=0 to prevent multi-process memory consumption in cloud containers)
+    dm = FinancialDataModule(csv_path, json_path, window_size=5, batch_size=32, num_workers=0, persistent_workers=False)
     
     # 3. Determine dimensions from data
     df = pd.read_csv(csv_path)
