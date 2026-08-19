@@ -38,7 +38,11 @@ class TextEncoder(nn.Module):
     """FinBERT-based encoder for news headlines and reports."""
     def __init__(self, model_name='ProsusAI/finbert', latent_dim=128, freeze=True):
         super().__init__()
-        self.bert = AutoModel.from_pretrained(model_name)
+        try:
+            self.bert = AutoModel.from_pretrained(model_name, low_cpu_mem_usage=True)
+        except Exception:
+            # Fallback if low_cpu_mem_usage fails
+            self.bert = AutoModel.from_pretrained(model_name)
         
         if freeze:
             for param in self.bert.parameters():

@@ -9,9 +9,15 @@ import math
 import shutil
 import subprocess
 import asyncio
+import gc
 import pandas as pd
 import numpy as np
 import torch
+
+# Optimize PyTorch memory footprint for cloud container deployments (prevents OOM 137)
+torch.set_grad_enabled(False)
+torch.set_num_threads(1)
+
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from transformers import AutoTokenizer
@@ -308,6 +314,7 @@ def load_resources_blocking():
          # In a real scenario, we might want to fail hard, or use a local fallback
          # raise e
     
+    gc.collect()
     return model_instance, tokenizer_instance, _needs_retraining
 
 def load_data_blocking():

@@ -23,10 +23,10 @@ yarn-error.log*
 mlruns/
 llm/src/.env.example
 
-# Datasets & Training Data
+# Datasets & Training Data (ignore huge raw dumps, but track baseline market data)
 ml_dataset/
-ml/*.csv
-ml/*.json
+!ml/market_data.csv
+!ml/narratives.json
 
 # Local Docker overrides
 docker-compose.override.yml
