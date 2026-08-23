@@ -42,9 +42,11 @@ services:
       - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-10d}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - PYTHON_SERVICE_URL=http://ml:8001
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - mongodb
       - ml
+      - redis
     volumes:
       - ./backend:/app
       - /app/node_modules
