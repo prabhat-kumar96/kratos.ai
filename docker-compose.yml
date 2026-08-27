@@ -83,10 +83,23 @@ services:
     container_name: kratos_ml
     ports:
       - "8001:8001"
-    volumes:
-      - ./ml:/app
+    environment:
+      - LIGHTWEIGHT_MODE=true
+      - ENABLE_AUTO_RETRAIN=false
+      - ENABLE_BROADCAST=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
     networks:
       - kratos_network
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   llm:
     build:
