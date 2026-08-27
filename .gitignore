@@ -19,8 +19,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# ML artifacts
+# ML artifacts — training run logs excluded (large/ephemeral)
 mlruns/
+# Slim trained checkpoints ARE committed (small, needed for deployment)
+# ml/checkpoints/ is intentionally NOT ignored
 llm/src/.env.example
 
 # Datasets & Training Data

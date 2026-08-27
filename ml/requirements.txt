@@ -1,14 +1,17 @@
-torch>=2.6.0
-pytorch-lightning>=2.0.0
-ruptures
-numpy
-mlflow
-scikit-learn
-fastapi
-uvicorn
-pandas
-transformers
-scipy
-torchmetrics
-yfinance
-redis
+﻿# ===================================================
+# Kratos.ai ML Service - Production Requirements
+# ===================================================
+# Lightweight: no PyTorch, no Transformers, no MLflow.
+# Fits comfortably within 512 MB RAM on free-tier hosts.
+# For full model training, use requirements-training.txt
+
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+pandas>=2.0.0
+numpy>=1.24.0
+yfinance>=0.2.30
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+redis>=5.0.0
+requests>=2.31.0
+scipy>=1.10.0

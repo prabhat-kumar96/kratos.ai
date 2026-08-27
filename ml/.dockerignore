@@ -1,7 +1,5 @@
-# Exclude large ML data from the ML build context
+﻿# Exclude virtual environments and ML training artifacts
 mlruns/
-market_data.csv
-narratives.json
 checkpoints/
 dataset/
 ML_dataset/
@@ -18,3 +16,6 @@ env/
 .gitignore
 .vscode
 .idea
+
+# Keep market_data.csv and narratives.json (required for production serving)
+# These are intentionally NOT excluded here.
