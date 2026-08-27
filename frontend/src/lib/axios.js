@@ -1,8 +1,22 @@
 import axios from "axios";
 
-// Create an Axios instance
-// Check if VITE_API_URL is defined, otherwise fallback to localhost (useful for easy dev)
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+// Read environment variables (supports VITE_API_URL, VITE_API_BASE_URL, or VITE_BACKEND_URL)
+const rawEnvUrl = (
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_BACKEND_URL ||
+    ""
+).trim().replace(/\/+$/, "");
+
+// Ensure BACKEND_ORIGIN is clean root host (e.g., https://kratos-backend-hoqd.onrender.com)
+export const BACKEND_ORIGIN = rawEnvUrl
+    ? rawEnvUrl.replace(/\/api\/v1\/?$/, "")
+    : "http://localhost:8000";
+
+// Ensure BASE_URL always has /api/v1
+export const BASE_URL = rawEnvUrl
+    ? (rawEnvUrl.endsWith("/api/v1") ? rawEnvUrl : `${rawEnvUrl}/api/v1`)
+    : "http://localhost:8000/api/v1";
 
 const api = axios.create({
     baseURL: BASE_URL,

@@ -5,6 +5,7 @@ import { Activity, Search, Shield, ArrowRight, TrendingUp, BarChart2, Radio, Glo
 import { io } from "socket.io-client";
 import LiveNewsFeed from "../../components/LiveNewsFeed";
 import CreatePortfolioModal from "../../components/CreatePortfolioModal";
+import api, { BACKEND_ORIGIN } from "../../lib/axios";
 
 export default function InvestorDashboard() {
     const [viewMode, setViewMode] = useState("overview"); // 'overview' | 'deep_dive'
@@ -28,7 +29,8 @@ export default function InvestorDashboard() {
         "GOOGL": { reliability_score: 90, regime: "Stable Growth", prediction: 0.70 },
         "AMZN": { reliability_score: 87, regime: "Stable Growth", prediction: 0.82 },
         "META": { reliability_score: 55, regime: "Correction", prediction: 0.35 },
-        "NFLX": { reliability_score: 81, regime: "Stable Growth", prediction: 0.60 }
+        "NFLX": { reliability_score: 81, regime: "Stable Growth", prediction: 0.60 },
+        "WMT": { reliability_score: 88, regime: "Stable Growth", prediction: 0.76 }
     };
 
     const [socketStatus, setSocketStatus] = useState("disconnected"); // 'connected' | 'disconnected' | 'error'
@@ -38,7 +40,7 @@ export default function InvestorDashboard() {
         const fetchTickers = async () => {
             // ... existing fetch logic ...
             try {
-                const response = await axios.get("http://localhost:8000/api/intelligence/tickers");
+                const response = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/tickers`);
 
                 if (!Array.isArray(response.data)) throw new Error("Invalid data format received.");
 
@@ -72,7 +74,7 @@ export default function InvestorDashboard() {
         };
         fetchTickers();
 
-        const socket = io("http://localhost:8000");
+        const socket = io(BACKEND_ORIGIN);
 
         socket.on('connect', () => {
             console.log('Connected to Live Market Stream');
@@ -107,9 +109,7 @@ export default function InvestorDashboard() {
     useEffect(() => {
         const fetchPortfolio = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/v1/portfolio', {
-                    withCredentials: true
-                });
+                const response = await api.get('/portfolio');
                 setPortfolio(response.data.portfolio);
             } catch (err) {
                 // No portfolio yet - that's okay
@@ -129,7 +129,7 @@ export default function InvestorDashboard() {
         const fetchAnalysis = async () => {
             setIsAnalysisLoading(true);
             try {
-                const res = await axios.get(`http://localhost:8000/api/intelligence/${selectedCompany.ticker}`);
+                const res = await axios.get(`${BACKEND_ORIGIN}/api/intelligence/${selectedCompany.ticker}`);
                 const mock = DASHBOARD_MOCKS[selectedCompany.ticker];
                 setAnalysisData({
                     ...res.data,

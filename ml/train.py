@@ -12,18 +12,34 @@ from src.models.pipeline import FinancialIntelligencePipeline
 from src.data.datamodule import FinancialDataModule
 
 def train():
-    # 1. Paths to synthetic data - support running from both project root and ML directory
+    # 1. Paths to data — check script dir first, then cwd (for Render / container runs)
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(script_dir, "market_data.csv")
-    json_path = os.path.join(script_dir, "narratives.json")
-    
-    if not os.path.exists(csv_path) or not os.path.exists(json_path):
-        print(f"Data files not found at {csv_path}")
-        print("Please run: python generate_data.py")
+    cwd = os.getcwd()
+
+    def find_file(name):
+        for d in [script_dir, cwd]:
+            p = os.path.join(d, name)
+            if os.path.exists(p):
+                return p
+        return None
+
+    csv_path = find_file("market_data.csv")
+    json_path = find_file("narratives.json")
+
+    if not csv_path:
+        print("ERROR: market_data.csv not found. Training aborted. It will be auto-generated on next startup.")
         return
 
-    # 2. Setup DataModule
-    dm = FinancialDataModule(csv_path, json_path, window_size=5, batch_size=128, num_workers=4, persistent_workers=True)
+    # Auto-create an empty narratives.json if missing (not required for training)
+    if not json_path:
+        json_path = os.path.join(script_dir, "narratives.json")
+        import json as _json
+        with open(json_path, "w") as f:
+            _json.dump([], f)
+        print(f"INFO: Created empty narratives.json at {json_path}")
+
+    # 2. Setup DataModule (num_workers=0 to prevent multi-process memory consumption in cloud containers)
+    dm = FinancialDataModule(csv_path, json_path, window_size=5, batch_size=32, num_workers=0, persistent_workers=False)
     
     # 3. Determine dimensions from data
     df = pd.read_csv(csv_path)

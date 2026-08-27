@@ -59,7 +59,8 @@ const MOCK_INTELLIGENCE_DATA = {
     "GOOGL": { reliability_score: 89, regime: "Stable Growth", prediction: 0.0028, narrative_summary: "Advertising recovery and AI integration positive.", is_consistent: true },
     "AMZN": { reliability_score: 85, regime: "Stable Growth", prediction: 0.0035, narrative_summary: "AWS and logistics efficiency improving.", is_consistent: true },
     "META": { reliability_score: 78, regime: "Volatile", prediction: 0.0042, narrative_summary: "Ad spend rebounding, but metaverse spending technically risky.", is_consistent: true },
-    "NFLX": { reliability_score: 80, regime: "Stable Growth", prediction: 0.0018, narrative_summary: "Subscriber growth re-accelerating from password sharing crackdown.", is_consistent: true }
+    "NFLX": { reliability_score: 80, regime: "Stable Growth", prediction: 0.0018, narrative_summary: "Subscriber growth re-accelerating from password sharing crackdown.", is_consistent: true },
+    "WMT": { reliability_score: 88, regime: "Stable Growth", prediction: 0.0031, narrative_summary: "Strong Q2 earnings and retail value positioning driving steady growth.", is_consistent: true }
 };
 
 export const getIntelligence = async (req, res) => {
@@ -190,7 +191,7 @@ export const getIntelligence = async (req, res) => {
                 history,
                 source: "static_analysis",
                 system_status: "online",
-                message: "Analysis provided by Aletheia Intelligence (Static Mode)"
+                message: "Analysis provided by Kratos AI (Static Mode)"
             });
         }
 

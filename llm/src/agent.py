@@ -5,18 +5,27 @@ from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 import operator
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Import our custom tools
-from src.tools import financial_comparator_tool, diagnostic_tool, document_rag_tool
+try:
+    from src.tools import financial_comparator_tool, diagnostic_tool, document_rag_tool
+except ImportError:
+    from tools import financial_comparator_tool, diagnostic_tool, document_rag_tool
 
 # --- State Definition ---
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
     context: str # to store tool outputs or additional context if needed
 
+groq_api_key = os.getenv("GROQ_API_KEY") or "gsk_dummy_placeholder_for_init"
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0.1
+    temperature=0.1,
+    groq_api_key=groq_api_key
 )
 
 # Bind tools to the LLM for the router
@@ -31,11 +40,11 @@ def router_node(state: AgentState):
     """
     messages = state["messages"]
     
-    system_prompt = """You are a specialized financial analyst for 'Aletheia AI'. 
-    Aletheia AI is a market intelligence platform that provides financial comparisons, trust scores, and narrative analysis to help investors and founders make informed decisions.
+    system_prompt = """You are a specialized financial analyst for 'Kratos AI'. 
+    Kratos AI is a market intelligence platform that provides financial comparisons, trust scores, and narrative analysis to help investors and founders make informed decisions.
     
     GUIDELINES:
-    1. If the user asks about Aletheia AI, the website, or its features, answer directly using the description above.
+    1. If the user asks about Kratos AI, the website, or its features, answer directly using the description above.
     2. If the user asks to compare companies OR to list available companies, use the 'financial_comparator_tool'.
     3. If the user asks about trust scores, consistency, or alignment, use the 'diagnostic_tool'.
     4. For general questions about the provided narratives or documents, use the 'document_rag_tool'.

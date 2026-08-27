@@ -1,4 +1,4 @@
-# ⚡ Kratos.ai - Intelligent Market Intelligence Platform
+# ⚡ Kratos.ai - Market Intelligence Platform
 > **Team:** Prabhat Kumar, Devesh, Gaurav
 
 **Unveiling Truth in Financial Noise.**

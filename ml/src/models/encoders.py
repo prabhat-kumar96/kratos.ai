@@ -36,13 +36,26 @@ class TabularEncoder(nn.Module):
 
 class TextEncoder(nn.Module):
     """FinBERT-based encoder for news headlines and reports."""
-    def __init__(self, model_name='yiyanghkust/finbert-pretrain', latent_dim=128, freeze=True):
+    def __init__(self, model_name='ProsusAI/finbert', latent_dim=128, freeze=True):
         super().__init__()
-        self.bert = AutoModel.from_pretrained(model_name)
+        try:
+            self.bert = AutoModel.from_pretrained(model_name, low_cpu_mem_usage=True)
+        except Exception:
+            # Fallback if low_cpu_mem_usage fails
+            self.bert = AutoModel.from_pretrained(model_name)
         
         if freeze:
             for param in self.bert.parameters():
                 param.requires_grad = False
+            
+            # Dynamic INT8 quantization: reduces model RAM from ~440MB to ~110MB on CPU
+            try:
+                self.bert = torch.quantization.quantize_dynamic(
+                    self.bert, {nn.Linear}, dtype=torch.qint8
+                )
+                print("INFO: FinBERT successfully quantized to INT8 (reduced RAM by ~75%).", flush=True)
+            except Exception as q_err:
+                print(f"WARNING: Quantization skipped: {q_err}", flush=True)
                 
         self.projection = nn.Linear(self.bert.config.hidden_size, latent_dim)
 

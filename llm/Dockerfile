@@ -22,11 +22,18 @@ RUN pip install --no-cache-dir \
     python-dotenv \
     tabulate
 
-# Copy source code
+# Copy llm service code (works whether context is repo root or ./llm)
 COPY . .
+
+# Ensure src is a proper Python package and directories are linked
+RUN mkdir -p src && touch src/__init__.py
+
+# Set Python environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app:/app/llm:/app/src:$PYTHONPATH
 
 # Expose port
 EXPOSE 8002
 
-# Run command
-CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8002"]
+# Run command with dynamic PORT support for Render
+CMD ["sh", "-c", "uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-8002}"]

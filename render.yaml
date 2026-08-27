@@ -1,0 +1,128 @@
+# =============================================================================
+# render.yaml — Kratos.ai Infrastructure as Code (Render Blueprint)
+# Deploy: backend (Node/Express), llm (FastAPI/LangGraph), ml (FastAPI/PyTorch)
+# Render docs: https://render.com/docs/blueprint-spec
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # 1. BACKEND — Node.js / Express API with MongoDB & Socket.io
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: kratos-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: oregon  # or: frankfurt, singapore, ohio, virginia
+    plan: starter   # starter (512 MB RAM) | standard (2 GB) | pro (4 GB)
+    branch: main    # git branch to deploy from
+    numInstances: 1
+
+    # Health check — Render will restart the service if this fails
+    healthCheckPath: /api/v1/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 8000
+
+      # MongoDB Atlas connection string — set in Render dashboard
+      - key: MONGODB_URI
+        sync: false   # marks as "secret" — must be set manually in the dashboard
+
+      # JWT Secrets — generate with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+      - key: ACCESS_TOKEN_SECRET
+        sync: false
+
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+
+      - key: ACCESS_TOKEN_EXPIRY
+        value: 1d
+
+      - key: REFRESH_TOKEN_EXPIRY
+        value: 10d
+
+      # Google OAuth
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # CORS — set to your Vercel production URL (no trailing slash)
+      # e.g. https://kratos-ai.vercel.app
+      - key: CORS_ORIGIN
+        sync: false
+
+      # Internal Render service URLs (set AFTER ml and llm services are created)
+      # Format: https://<service-name>.onrender.com
+      - key: PYTHON_SERVICE_URL
+        value: https://kratos-ml.onrender.com
+
+      - key: LLM_SERVICE_URL
+        value: https://kratos-llm.onrender.com
+
+  # ---------------------------------------------------------------------------
+  # 2. LLM SERVICE — Python / FastAPI / LangGraph / Groq
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: kratos-llm
+    runtime: docker
+    dockerfilePath: ./llm/Dockerfile
+    dockerContext: ./llm
+    region: oregon
+    plan: standard  # langchain + groq calls need at least 1 GB RAM
+    branch: main
+    numInstances: 1
+
+    healthCheckPath: /docs  # FastAPI auto-generates /docs (OpenAPI)
+
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+
+      # Internal URL pointing to the ML service
+      - key: PYTHON_SERVICE_URL
+        value: https://kratos-ml.onrender.com
+
+      - key: BACKEND_URL
+        value: https://kratos-backend.onrender.com
+
+  # ---------------------------------------------------------------------------
+  # 3. ML SERVICE — Python / PyTorch / FastAPI Inference API
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: kratos-ml
+    runtime: docker
+    dockerfilePath: ./ml/Dockerfile
+    dockerContext: ./ml
+    region: oregon
+    plan: standard-plus  # PyTorch CPU inference needs 2+ GB RAM; use 'pro' (4 GB) if OOM
+    branch: main
+    numInstances: 1
+
+    healthCheckPath: /docs
+
+    envVars:
+      - key: CHECKPOINT_PATH
+        value: /app/checkpoints  # mount a persistent disk below if needed
+
+      # Hugging Face token — required to download gated/private models from the Hub
+      # Get yours at: https://huggingface.co/settings/tokens (read access is enough)
+      - key: HF_TOKEN
+        sync: false
+
+      # Redis pub-sub — set this to your Render Redis internal URL or Upstash URL
+      - key: REDIS_URL
+        sync: false
+
+# =============================================================================
+# PERSISTENT DISK (optional — for ML model checkpoints)
+# Uncomment if your PyTorch model weights are loaded from disk at runtime.
+# Render free/starter disks are ephemeral; a persistent disk survives redeploys.
+# =============================================================================
+# disks:
+#   - name: ml-checkpoints
+#     mountPath: /app/checkpoints
+#     sizeGB: 5

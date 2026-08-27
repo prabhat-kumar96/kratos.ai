@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../lib/axios';
 import { X, TrendingDown } from 'lucide-react';
 
 export default function SellModal({ holding, onClose, onSuccess }) {
@@ -27,12 +27,10 @@ export default function SellModal({ holding, onClose, onSuccess }) {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/orders', {
+            const response = await api.post('/orders', {
                 symbol: holding.symbol,
                 side: 'SELL',
                 quantity: parseInt(quantity)
-            }, {
-                withCredentials: true
             });
 
             console.log('Sell order placed:', response.data);
