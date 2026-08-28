@@ -62,6 +62,9 @@ _ticker_price_cache: dict = {}   # {ticker: {"price": float, "change": float}}
 # ---------------------------------------------------------------------------
 # Redis Connection (non-fatal)
 # ---------------------------------------------------------------------------
+# Render Redis gives a full URL like redis://red-xxxx.onrender.com:6379
+# We support both REDIS_URL (full URL) and REDIS_HOST/REDIS_PORT (separate)
+REDIS_URL = os.getenv("REDIS_URL", "")
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 ENABLE_BROADCAST = os.getenv("ENABLE_BROADCAST", "false").lower() in ("true", "1", "yes")
@@ -69,16 +72,22 @@ ENABLE_AUTO_RETRAIN = os.getenv("ENABLE_AUTO_RETRAIN", "false").lower() in ("tru
 
 if _redis_lib is not None:
     try:
-        redis_client = _redis_lib.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True, socket_connect_timeout=2)
+        if REDIS_URL:
+            redis_client = _redis_lib.from_url(REDIS_URL, decode_responses=True, socket_connect_timeout=2)
+            _redis_display = REDIS_URL.split("@")[-1] if "@" in REDIS_URL else REDIS_URL
+        else:
+            redis_client = _redis_lib.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True, socket_connect_timeout=2)
+            _redis_display = f"{REDIS_HOST}:{REDIS_PORT}"
         try:
             redis_client.ping()
-            print(f"INFO: Connected to Redis at {REDIS_HOST}:{REDIS_PORT}", flush=True)
+            print(f"INFO: Connected to Redis at {_redis_display}", flush=True)
         except Exception:
             redis_client = None
-            print(f"WARNING: Redis at {REDIS_HOST}:{REDIS_PORT} unreachable. Broadcasting disabled.", flush=True)
+            print(f"WARNING: Redis at {_redis_display} unreachable. Broadcasting disabled.", flush=True)
     except Exception as e:
         redis_client = None
         print(f"WARNING: Redis connection failed: {e}", flush=True)
+
 
 # ---------------------------------------------------------------------------
 # Market Data Broadcast (optional background task)
@@ -600,9 +609,9 @@ async def get_prediction(ticker: str):
 
 
 # ---------------------------------------------------------------------------
-# GET / — root health check (Render pings this)
+# GET / and HEAD / — root health check (Render pings this with HEAD)
 # ---------------------------------------------------------------------------
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok", "service": "Kratos.ai ML Service"}
 
