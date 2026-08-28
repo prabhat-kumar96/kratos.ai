@@ -13,7 +13,7 @@ CSV_PATH = os.path.join(DATA_DIR, "market_data.csv")
 JSON_PATH = os.path.join(DATA_DIR, "narratives.json")
 
 groq_api_key = os.getenv("GROQ_API_KEY") or "gsk_dummy_placeholder_for_init"
-groq_model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+groq_model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 llm = ChatGroq(
     model=groq_model,
     temperature=0.1,
