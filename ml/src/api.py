@@ -55,6 +55,10 @@ expected_tabular_dim = 0
 training_process = None
 redis_client = None
 
+# Ticker price cache — pre-built from market_data.csv at startup, refreshed async
+_ticker_price_cache: dict = {}   # {ticker: {"price": float, "change": float}}
+
+
 # ---------------------------------------------------------------------------
 # Redis Connection (non-fatal)
 # ---------------------------------------------------------------------------
@@ -311,6 +315,61 @@ def load_data_blocking():
     return _market_data, _narratives_data
 
 
+def _seed_price_cache_from_csv():
+    """Pre-fill _ticker_price_cache with the latest close/change from market_data.csv (instant, no network)."""
+    global _ticker_price_cache
+    if market_data is None:
+        return
+    try:
+        latest = (
+            market_data.sort_values("date")
+            .groupby("ticker")
+            .tail(1)
+            .set_index("ticker")
+        )
+        cache = {}
+        for ticker, row in latest.iterrows():
+            close = float(row.get("close", 0))
+            open_ = float(row.get("open", close))
+            change = round((close - open_) / (open_ + 1e-9) * 100, 2) if open_ else 0.0
+            cache[str(ticker).upper()] = {"price": round(close, 2), "change": change}
+        _ticker_price_cache = cache
+        print(f"INFO: Seeded price cache with {len(cache)} tickers from CSV.", flush=True)
+    except Exception as e:
+        print(f"WARNING: Price cache seed failed: {e}", flush=True)
+
+
+async def _refresh_price_cache_from_yfinance():
+    """Background task: refresh _ticker_price_cache with live yfinance prices (slow, runs once after startup)."""
+    global _ticker_price_cache
+    ALL_TICKERS = list(_ticker_price_cache.keys()) or [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AMD", "INTC", "TSM", "ORCL",
+        "TSLA", "PLTR", "SNOW", "CRWD", "ARM", "COIN", "SHOP", "UBER", "ABNB", "SPOT", "RBLX", "RIVN",
+        "IBN", "HDB", "INFY", "WIT", "HSBC", "JPM", "V", "MA",
+        "NFLX", "DIS", "WMT", "KO", "LLY", "BA"
+    ]
+    print(f"INFO: Background live price refresh started for {len(ALL_TICKERS)} tickers…", flush=True)
+    try:
+        def _fetch():
+            updated = {}
+            for ticker in ALL_TICKERS:
+                try:
+                    info = yf.Ticker(ticker).fast_info
+                    price = info.last_price
+                    prev = info.previous_close
+                    if price and price > 0:
+                        chg = round((price - prev) / (prev + 1e-9) * 100, 2) if prev else 0.0
+                        updated[ticker] = {"price": round(price, 2), "change": chg}
+                except Exception:
+                    pass  # keep CSV fallback value
+            return updated
+        live = await asyncio.to_thread(_fetch)
+        _ticker_price_cache.update(live)
+        print(f"INFO: Live price cache refreshed — {len(live)}/{len(ALL_TICKERS)} tickers updated.", flush=True)
+    except Exception as e:
+        print(f"WARNING: Live price refresh failed: {e}", flush=True)
+
+
 async def load_resources():
     """Loads all resources. In lightweight mode, skips PyTorch/FinBERT."""
     global market_data, narratives_data, model, tokenizer, is_retraining
@@ -326,7 +385,12 @@ async def load_resources():
 
     if LIGHTWEIGHT_MODE:
         print("INFO: LIGHTWEIGHT_MODE=true — skipping PyTorch/FinBERT load.", flush=True)
+        # Seed the price cache immediately from market_data so /tickers is instant
+        _seed_price_cache_from_csv()
+        # Then refresh live prices in background (non-blocking)
+        asyncio.create_task(_refresh_price_cache_from_yfinance())
         return
+
 
     print("INFO: Loading PyTorch model + FinBERT tokenizer...", flush=True)
     try:
@@ -536,47 +600,60 @@ async def get_prediction(ticker: str):
 
 
 # ---------------------------------------------------------------------------
-# /tickers
+# GET / — root health check (Render pings this)
+# ---------------------------------------------------------------------------
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "Kratos.ai ML Service"}
+
+
+# ---------------------------------------------------------------------------
+# /tickers — instant response from price cache
 # ---------------------------------------------------------------------------
 @app.get("/tickers")
 def get_tickers():
-    """Returns all available tickers with live price summaries."""
-    LIVE_TICKERS = [
+    """Returns all available tickers instantly from the pre-built price cache.
+    Prices start from market_data.csv values and are replaced by live yfinance
+    values once the background refresh completes (a few seconds after startup).
+    """
+    CANONICAL_TICKERS = [
         "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AMD", "INTC", "TSM", "ORCL",
         "TSLA", "PLTR", "SNOW", "CRWD", "ARM", "COIN", "SHOP", "UBER", "ABNB", "SPOT", "RBLX", "RIVN",
         "IBN", "HDB", "INFY", "WIT", "HSBC", "JPM", "V", "MA",
         "NFLX", "DIS", "WMT", "KO", "LLY", "BA"
     ]
 
-    unique_tickers = market_data["ticker"].unique().tolist() if market_data is not None else []
-    all_tickers = list(set(LIVE_TICKERS + unique_tickers))
+    # Merge: canonical list + anything in market_data not already covered
+    extra_from_csv = (
+        [t for t in market_data["ticker"].unique().tolist() if t not in CANONICAL_TICKERS]
+        if market_data is not None else []
+    )
+    all_tickers = CANONICAL_TICKERS + extra_from_csv
+
     summary = []
-
-    try:
-        tickers_str = " ".join(all_tickers)
-        live_data = yf.Tickers(tickers_str)
-
-        for ticker in all_tickers:
-            try:
-                info = live_data.tickers[ticker].fast_info
-                if info is None or not hasattr(info, "last_price") or not info.last_price:
-                    raise ValueError("No live data")
-                price = round(info.last_price, 2)
-                prev_close = info.previous_close
-                change_pct = round(((price - prev_close) / prev_close) * 100, 2) if prev_close else 0.0
-                summary.append({"ticker": ticker, "name": ticker, "price": price, "change": change_pct, "is_analyzed": True})
-            except Exception:
-                if market_data is not None:
-                    t_df = market_data[market_data["ticker"] == ticker]
-                    if not t_df.empty:
-                        lr = t_df.iloc[-1]
-                        price = round(float(lr["close"]), 2)
-                        change = round((float(lr["close"]) - float(lr["open"])) / (float(lr["open"]) + 1e-9) * 100, 2)
-                        summary.append({"ticker": ticker, "name": ticker, "price": price, "change": change, "is_analyzed": True, "source": "historical_fallback"})
-    except ImportError:
-        print("WARNING: yfinance not installed.", flush=True)
+    for ticker in all_tickers:
+        cached = _ticker_price_cache.get(ticker)
+        if cached:
+            summary.append({
+                "ticker": ticker,
+                "name": ticker,
+                "price": cached["price"],
+                "change": cached["change"],
+                "is_analyzed": True,
+            })
+        else:
+            # Ticker not in CSV at all — emit with zeroes so UI still shows it
+            summary.append({
+                "ticker": ticker,
+                "name": ticker,
+                "price": 0.0,
+                "change": 0.0,
+                "is_analyzed": False,
+            })
 
     return summary
+
+
 
 
 # ---------------------------------------------------------------------------
