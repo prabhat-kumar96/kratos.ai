@@ -2,7 +2,12 @@
 node_modules/
 __pycache__/
 venv/
+.venv/
 .env*
+
+lightning_logs/
+*.local_backup
+docker
 
 myenv/
 
@@ -21,8 +26,9 @@ yarn-error.log*
 
 # ML artifacts — training run logs excluded (large/ephemeral)
 mlruns/
-# Slim trained checkpoints ARE committed (small, needed for deployment)
-# ml/checkpoints/ is intentionally NOT ignored
+# Keep slim checkpoint, ignore large/raw local checkpoints
+ml/checkpoints/*.ckpt
+!ml/checkpoints/kratos_slim.ckpt
 llm/src/.env.example
 
 # Datasets & Training Data (ignore huge raw dumps, but track baseline market data)
