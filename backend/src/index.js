@@ -74,6 +74,7 @@ connectDB()
     })
 
 app.use("/api/intelligence", intelligenceRouter);
+app.use("/api/v1/intelligence", intelligenceRouter);
 app.use("/api/v1/portfolio", portfolioRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/holdings", holdingRouter);
