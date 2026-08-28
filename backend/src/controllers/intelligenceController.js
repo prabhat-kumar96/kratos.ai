@@ -316,6 +316,11 @@ export const getTickers = async (req, res) => {
                 return null;
             }
 
+            // Filter out test founders or dummy placeholder companies
+            if (["DEVESH", "TEST", "DUMMY", "ADMIN"].includes(tickerSymbol)) {
+                return null;
+            }
+
             // Calculate Dynamic Price for NEW startups
             // Price = $10 + ($0.10 * Net Holdings)
             let netHoldings = 0;
