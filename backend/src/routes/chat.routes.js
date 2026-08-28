@@ -14,9 +14,15 @@ router.route("/").post(verifyJWT, async (req, res) => {
 
         // Forward logic to Python FastAPI Service (LLM)
         try {
-            const llmResponse = await axios.post("http://host.docker.internal:8002/chat", {
+            const llmServiceUrl = process.env.LLM_SERVICE_URL || "http://localhost:8002";
+            // Clean trailing slashes
+            const cleanLlmUrl = llmServiceUrl.replace(/\/+$/, "");
+            
+            const llmResponse = await axios.post(`${cleanLlmUrl}/chat`, {
                 query,
                 ticker
+            }, {
+                timeout: 30000 // 30s timeout for LLM inference
             });
 
             return res.status(200).json({
