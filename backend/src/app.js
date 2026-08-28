@@ -23,7 +23,7 @@ const buildAllowedOrigins = () => {
     if (envVal === '*') return '*'; // wildcard (dev only — cookies won't work)
     const fromEnv = envVal
         .split(',')
-        .map(o => o.trim())
+        .map(o => o.trim().replace(/\/+$/, '')) // strip trailing slashes!
         .filter(Boolean);
     return [...new Set([...base, ...fromEnv])];
 };
@@ -35,17 +35,26 @@ app.use(cors({
         // Allow server-to-server and curl requests (no Origin header)
         if (!origin) return callback(null, true);
 
+        // Normalize incoming origin by removing any trailing slash
+        const cleanOrigin = origin.replace(/\/+$/, '');
+
         // Always allow Chrome extension requests
-        if (origin.startsWith('chrome-extension://')) {
+        if (cleanOrigin.startsWith('chrome-extension://')) {
             return callback(null, true);
         }
 
         // Wildcard mode (dev only — credentials won't work with this)
         if (allowedOrigins === '*') return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        // Allow any Vercel preview or production deployment of this project
+        if (cleanOrigin.includes('vercel.app')) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.includes(cleanOrigin)) {
             callback(null, true);
         } else {
+            console.warn(`Blocked by CORS: ${cleanOrigin}. Allowed origins:`, allowedOrigins);
             callback(new Error(`CORS: origin '${origin}' not allowed`));
         }
     },
