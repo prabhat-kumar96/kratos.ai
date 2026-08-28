@@ -1,42 +1,218 @@
 [
   {
     "ticker": "AAPL",
-    "narrative": "AAPL stock analysis"
+    "transcript": "Apple Inc. - Consumer electronics and AI ecosystem",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "MSFT",
-    "narrative": "MSFT stock analysis"
+    "transcript": "Microsoft Corp - Cloud computing, OpenAI partnership and enterprise software",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "GOOGL",
-    "narrative": "GOOGL stock analysis"
+    "transcript": "Alphabet Inc - Search, YouTube, Android, and Gemini AI",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "AMZN",
-    "narrative": "AMZN stock analysis"
+    "transcript": "Amazon.com - E-commerce marketplace and AWS cloud infrastructure",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "NVDA",
-    "narrative": "NVDA stock analysis"
-  },
-  {
-    "ticker": "TSLA",
-    "narrative": "TSLA stock analysis"
+    "transcript": "NVIDIA Corp - GPU computing and AI accelerated hardware",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "META",
-    "narrative": "META stock analysis"
+    "transcript": "Meta Platforms - Social technology, Instagram, WhatsApp, and Llama AI",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "AMD",
-    "narrative": "AMD stock analysis"
-  },
-  {
-    "ticker": "NFLX",
-    "narrative": "NFLX stock analysis"
+    "transcript": "Advanced Micro Devices - High performance computing and Ryzen/EPYC chips",
+    "sentiment": 0.7,
+    "alignment_flag": true
   },
   {
     "ticker": "INTC",
-    "narrative": "INTC stock analysis"
+    "transcript": "Intel Corp - Semiconductor manufacturing and foundry services",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "TSM",
+    "transcript": "Taiwan Semiconductor - Global leader in advanced chip fabrication",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "ORCL",
+    "transcript": "Oracle Corp - Enterprise database, ERP software, and cloud infrastructure",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "TSLA",
+    "transcript": "Tesla Inc - Electric vehicles, autonomy, humanoid robotics, and energy",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "PLTR",
+    "transcript": "Palantir Technologies - Big data analytics and AI defense intelligence platform",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "SNOW",
+    "transcript": "Snowflake Inc - Data cloud platform and enterprise data warehousing",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "CRWD",
+    "transcript": "CrowdStrike - Cloud-native endpoint cybersecurity and threat intelligence",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "ARM",
+    "transcript": "Arm Holdings - Energy-efficient semiconductor architecture and licensing",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "COIN",
+    "transcript": "Coinbase Global - Cryptocurrency exchange and digital asset ecosystem",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "SHOP",
+    "transcript": "Shopify Inc - Global commerce operating system and merchant solutions",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "UBER",
+    "transcript": "Uber Technologies - Mobility networks, ride-hailing, and delivery ecosystem",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "ABNB",
+    "transcript": "Airbnb Inc - Global peer-to-peer lodging and travel experiences platform",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "SPOT",
+    "transcript": "Spotify Technology - Music and podcast streaming audio network",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "RBLX",
+    "transcript": "Roblox Corp - Immersive 3D virtual metaverse and creator platform",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "RIVN",
+    "transcript": "Rivian Automotive - Electric adventure pickup and commercial van OEM",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "IBN",
+    "transcript": "ICICI Bank ADR - Leading Indian private sector bank traded on NYSE",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "HDB",
+    "transcript": "HDFC Bank ADR - Largest Indian private bank traded on NYSE",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "WIT",
+    "transcript": "Wipro ADR - Global IT consulting and digital transformation services",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "INFY",
+    "transcript": "Infosys ADR - Pioneer in IT software services and digital solutions on NYSE",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "HSBC",
+    "transcript": "HSBC Holdings ADR - Universal international banking and wealth management on NYSE",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "JPM",
+    "transcript": "JPMorgan Chase - Largest US bank in asset management and corporate banking",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "V",
+    "transcript": "Visa Inc - Global digital payments network and card transaction processing",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "MA",
+    "transcript": "Mastercard Inc - Global payment technology network and financial processing",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "NFLX",
+    "transcript": "Netflix Inc - Streaming media entertainment network and original content",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "DIS",
+    "transcript": "Walt Disney Co - Global family entertainment, theme parks, and streaming media",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "WMT",
+    "transcript": "Walmart Inc - Omnichannel retail leader and value marketplace",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "KO",
+    "transcript": "Coca-Cola Co - Global beverage manufacturer and distribution franchise",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "LLY",
+    "transcript": "Eli Lilly - Healthcare pharmaceuticals leader in metabolic and diabetes therapies",
+    "sentiment": 0.7,
+    "alignment_flag": true
+  },
+  {
+    "ticker": "BA",
+    "transcript": "Boeing Co - Commercial aviation aerospace manufacturer and defense contractor",
+    "sentiment": 0.7,
+    "alignment_flag": true
   }
 ]

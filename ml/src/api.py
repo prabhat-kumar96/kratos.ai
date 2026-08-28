@@ -110,7 +110,12 @@ async def broadcast_market_data():
     print("INFO: Starting Market Data Broadcast Service...", flush=True)
     while True:
         try:
-            BASE_TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "AMD", "NFLX"]
+            BASE_TICKERS = [
+                "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AMD", "INTC", "TSM", "ORCL",
+                "TSLA", "PLTR", "SNOW", "CRWD", "ARM", "COIN", "SHOP", "UBER", "ABNB", "SPOT", "RBLX", "RIVN",
+                "IBN", "HDB", "INFY", "WIT", "HSBC", "JPM", "V", "MA",
+                "NFLX", "DIS", "WMT", "KO", "LLY", "BA"
+            ]
             ALL_TICKERS = list(set(BASE_TICKERS + (market_data["ticker"].unique().tolist() if market_data is not None else [])))
             updates = await asyncio.to_thread(fetch_market_data_snapshot, ALL_TICKERS)
             if updates and redis_client:
@@ -536,7 +541,12 @@ async def get_prediction(ticker: str):
 @app.get("/tickers")
 def get_tickers():
     """Returns all available tickers with live price summaries."""
-    LIVE_TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "AMD", "INTC", "NFLX", "JPM", "V", "WMT", "DIS"]
+    LIVE_TICKERS = [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AMD", "INTC", "TSM", "ORCL",
+        "TSLA", "PLTR", "SNOW", "CRWD", "ARM", "COIN", "SHOP", "UBER", "ABNB", "SPOT", "RBLX", "RIVN",
+        "IBN", "HDB", "INFY", "WIT", "HSBC", "JPM", "V", "MA",
+        "NFLX", "DIS", "WMT", "KO", "LLY", "BA"
+    ]
 
     unique_tickers = market_data["ticker"].unique().tolist() if market_data is not None else []
     all_tickers = list(set(LIVE_TICKERS + unique_tickers))

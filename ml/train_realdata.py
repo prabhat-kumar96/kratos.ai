@@ -1,4 +1,4 @@
-﻿# ===================================================
+# ===================================================
 # Kratos.ai - Full Training Script with Real yfinance Data
 # Saves a slim checkpoint excluding frozen FinBERT weights (~5-10 MB)
 # Usage: python train_realdata.py
@@ -297,7 +297,16 @@ class MarketDataset(Dataset):
 # 5. Main
 # -------------------------------------------------------
 def main():
-    TICKERS = ["AAPL", "NVDA", "MSFT", "AMD", "GOOG", "META", "AMZN"]
+    TICKERS = [
+        # US Tech & AI Giants
+        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "AMD", "INTC", "TSM", "ORCL",
+        # High-Growth Startups & Unicorns
+        "TSLA", "PLTR", "SNOW", "CRWD", "ARM", "COIN", "SHOP", "UBER", "ABNB", "SPOT", "RBLX", "RIVN",
+        # Indian Giants & Global Banking (Available via US ADRs & NYSE)
+        "IBN", "HDB", "INFY", "WIT", "HSBC", "JPM", "V", "MA",
+        # Consumer & Industrial Leaders
+        "NFLX", "DIS", "WMT", "KO", "LLY", "BA"
+    ]
     CHECKPOINT_DIR = os.path.join(os.path.dirname(__file__), "checkpoints")
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
