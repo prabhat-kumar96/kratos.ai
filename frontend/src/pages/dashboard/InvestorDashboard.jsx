@@ -118,12 +118,25 @@ export default function InvestorDashboard() {
         });
 
         socket.on('live_ticker_update', (updates) => {
-            console.log("Frontend received update:", updates);
-            setCompanies(prev => prev.map(c => {
-                const up = updates[c.ticker];
-                if (up) return { ...c, price: up.price, change: up.change_percent };
-                return c;
-            }));
+            if (!updates || typeof updates !== 'object') return;
+            try {
+                setCompanies(prev => {
+                    if (!Array.isArray(prev)) return prev;
+                    return prev.map(c => {
+                        const up = updates[c.ticker];
+                        if (up && typeof up === 'object') {
+                            const newPrice = up.price !== undefined && !isNaN(up.price) ? Number(up.price) : c.price;
+                            const newChange = up.change_percent !== undefined && !isNaN(up.change_percent) 
+                                ? Number(up.change_percent) 
+                                : (up.change !== undefined && !isNaN(up.change) ? Number(up.change) : c.change);
+                            return { ...c, price: newPrice, change: newChange };
+                        }
+                        return c;
+                    });
+                });
+            } catch (err) {
+                console.error("Error processing live_ticker_update:", err);
+            }
         });
 
         return () => socket.disconnect();
@@ -298,11 +311,11 @@ export default function InvestorDashboard() {
                                                         {company.ticker}
                                                     </td>
                                                     <td className="px-6 py-4 font-mono text-gray-300">
-                                                        ${company.price}
-                                                    </td>
-                                                    <td className={`px-6 py-4 font-mono font-medium ${company.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                        {company.change > 0 ? '+' : ''}{company.change}%
-                                                    </td>
+                                                         ${typeof company.price === 'number' ? company.price.toFixed(2) : company.price}
+                                                     </td>
+                                                     <td className={`px-6 py-4 font-mono font-medium ${Number(company.change) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                         {Number(company.change) > 0 ? '+' : ''}{typeof company.change === 'number' ? company.change.toFixed(2) : company.change}%
+                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         {company.is_analyzed ? (
                                                             <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs border border-indigo-500/20">
