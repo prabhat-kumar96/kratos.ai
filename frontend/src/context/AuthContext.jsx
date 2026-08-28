@@ -13,6 +13,11 @@ export function AuthProvider({ children }) {
     // Helper to decode token and set user state
     const handleToken = (accessToken) => {
         setAccessToken(accessToken);
+        if (accessToken) {
+            localStorage.setItem("accessToken", accessToken);
+        } else {
+            localStorage.removeItem("accessToken");
+        }
         try {
             const decoded = jwtDecode(accessToken);
             // Verify what's in the token. Based on user model:
@@ -25,6 +30,24 @@ export function AuthProvider({ children }) {
             return null;
         }
     };
+
+    // Initialize user from cached token if present
+    useEffect(() => {
+        const cached = localStorage.getItem("accessToken");
+        if (cached) {
+            try {
+                const decoded = jwtDecode(cached);
+                // Check if token has not expired
+                if (decoded && decoded.exp * 1000 > Date.now()) {
+                    setAccessToken(cached);
+                    setUser(decoded);
+                    setLoading(false);
+                }
+            } catch {
+                localStorage.removeItem("accessToken");
+            }
+        }
+    }, []);
 
     // Check auth on mount (refresh token flow)
     useEffect(() => {

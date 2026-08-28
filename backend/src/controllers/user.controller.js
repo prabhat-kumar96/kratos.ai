@@ -108,10 +108,11 @@ const loginUser = asyncHandler(async (req, res) => {
     // 6. Fetch User for Response (sanitize sensitive fields)
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
-    // 7. Set Cookie Options
+    // 7. Set Cookie Options (sameSite: 'none' + secure: true required for cross-domain Vercel <-> Render cookies)
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true,
+        sameSite: 'none'
     };
 
     // 8. Send Response
@@ -149,7 +150,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     // 2. Clear Cookies
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true,
+        sameSite: 'none'
     };
 
     return res
@@ -194,7 +196,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            sameSite: 'none'
         };
 
         // 6. Send Response with NEW tokens
