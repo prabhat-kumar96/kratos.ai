@@ -22,7 +22,7 @@ router.route("/").post(verifyJWT, async (req, res) => {
                 query,
                 ticker
             }, {
-                timeout: 30000 // 30s timeout for LLM inference
+                timeout: 45000 // 45s timeout for LLM inference
             });
 
             return res.status(200).json({

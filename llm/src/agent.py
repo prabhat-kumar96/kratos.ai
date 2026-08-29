@@ -78,25 +78,40 @@ def tool_execution_node(state: AgentState):
 
 def generation_node(state: AgentState):
     """
-    Node 3 (Generation): Synthesize the final answer.
+    Node 3 (Generation): Synthesize the final answer from tool outputs.
     """
     messages = state["messages"]
-    last_message = messages[-1]
+    user_query = ""
+    for msg in messages:
+        if isinstance(msg, HumanMessage) or getattr(msg, "type", "") == "human":
+            user_query = str(msg.content)
+            break
+    if not user_query and messages:
+        user_query = str(messages[0].content)
+        
+    # Extract tool outputs
+    tool_outputs = []
+    for msg in messages:
+        msg_type = getattr(msg, "type", "")
+        if msg_type == "tool" or msg.__class__.__name__ == "ToolMessage":
+            tool_outputs.append(str(msg.content))
+            
+    tool_context = "\n\n".join(tool_outputs) if tool_outputs else "No tool output available."
     
-    # If the last message is a ToolMessage, we generate a final response.
-    # If it's an AIMessage (router output) with no tool calls, we just return it (or handled by end).
-    
-    # Logic: 
-    # If we just came from tools, we want to generate a human-readable answer.
-    # We invoke the LLM (without tools forced) to synthesize.
-    
-    system_prompt = """You are a financial analyst. Synthesize the tool outputs into a helpful response.
-    Do not add external information not found in the tool outputs. 
-    If the tool output indicates an error or lack of data, state that clearly.
-    """
-    conversation = [SystemMessage(content=system_prompt)] + list(messages)
-    
-    response = llm.invoke(conversation)
+    synthesis_prompt = f"""You are a specialized financial analyst for Kratos AI.
+Here is the data and context retrieved from the platform:
+
+{tool_context}
+
+User Question: "{user_query}"
+
+INSTRUCTIONS:
+1. Provide a comprehensive, professional, and clear answer using the data above.
+2. If metrics were retrieved, format them cleanly using Markdown tables and bullet points.
+3. Compare the requested metrics (e.g. RSI, MACD, Moving Averages, Volatility, P/E) concisely.
+4. Do not mention internal tool names or internal function calls."""
+
+    response = llm.invoke([HumanMessage(content=synthesis_prompt)])
     return {"messages": [response]}
 
 # --- Graph Definition ---

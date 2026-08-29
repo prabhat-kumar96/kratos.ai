@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 import json
 from langchain.tools import tool
@@ -20,33 +21,104 @@ llm = ChatGroq(
     groq_api_key=groq_api_key
 )
 
+COMPANY_NAME_MAP = {
+    "APPLE": "AAPL",
+    "NVIDIA": "NVDA",
+    "MICROSOFT": "MSFT",
+    "GOOGLE": "GOOGL",
+    "ALPHABET": "GOOGL",
+    "AMAZON": "AMZN",
+    "TESLA": "TSLA",
+    "META": "META",
+    "FACEBOOK": "META",
+    "NETFLIX": "NFLX",
+    "WALMART": "WMT",
+    "DISNEY": "DIS",
+    "PALANTIR": "PLTR",
+    "AMD": "AMD",
+    "ADVANCED MICRO DEVICES": "AMD",
+    "INTEL": "INTC",
+    "MICRON": "MU",
+    "ICICI": "IBN",
+    "HDFC": "HDB",
+    "INFOSYS": "INFY",
+    "WIPRO": "WIT",
+    "HSBC": "HSBC",
+    "JPMORGAN": "JPM",
+    "VISA": "V",
+    "MASTERCARD": "MA",
+    "COINBASE": "COIN",
+    "ARM": "ARM",
+    "SNOWFLAKE": "SNOW",
+    "CROWDSTRIKE": "CRWD",
+    "SHOPIFY": "SHOP",
+    "UBER": "UBER",
+    "AIRBNB": "ABNB",
+    "SPOTIFY": "SPOT",
+    "ROBLOX": "RBLX",
+    "RIVIAN": "RIVN",
+    "BOEING": "BA",
+    "ELI LILLY": "LLY",
+    "COCA COLA": "KO"
+}
+
 @tool
 def financial_comparator_tool(query: str) -> str:
     """
     Useful for comparing financial metrics between companies (tickers), listing available companies, 
-    or querying the dataset using market_data.csv.
-    Can handle queries like 'Compare AAPL and AMD' or 'What companies are in the data?'.
+    or querying key indicators (Price, RSI, MACD, 50 SMA, 200 SMA, P/E Ratio, Volatility) from market_data.csv.
+    Can handle queries like 'Compare AAPL and AMD', 'List metrics of AMD and compare with NVIDIA', or 'What companies are in the data?'.
     """
-    df = pd.read_csv(CSV_PATH)
-    
-    agent = create_pandas_dataframe_agent(
-        llm,
-        df,
-        verbose=True,
-        allow_dangerous_code=True,
-        prefix="""
-        You are a financial analyst. 
-        When asked to compare tickers (e.g., 'Compare AAPL and AMD'), 
-        you MUST fetch the relevant rows for ALL mentioned tickers from the dataframe.
-        If asked to list companies, YOU MUST execute `df['ticker'].unique()` to get the complete list.
-        Format the output diligently as a markdown table showing the comparison of key metrics.
-        If the user asks for specific metrics, focus on those.
-        """
-    )
-    
     try:
-        response = agent.invoke(query)
-        return response['output']
+        if not os.path.exists(CSV_PATH):
+            return "Error: market_data.csv not found."
+            
+        df = pd.read_csv(CSV_PATH)
+        all_tickers = [str(t).upper() for t in df['ticker'].unique()]
+        
+        # Check if user asks for list of companies/tickers
+        q_lower = query.lower()
+        if any(w in q_lower for w in ["list companies", "available companies", "what companies", "all tickers", "list tickers"]):
+            return f"Available companies in Kratos AI dataset ({len(all_tickers)} total):\n" + ", ".join(all_tickers)
+            
+        # Detect tickers and company names in query
+        found_tickers = []
+        words = re.findall(r'[A-Za-z0-9\.\-]+', query)
+        for w in words:
+            w_upper = w.upper()
+            if w_upper in all_tickers and w_upper not in found_tickers:
+                found_tickers.append(w_upper)
+            elif w_upper in COMPANY_NAME_MAP:
+                mapped = COMPANY_NAME_MAP[w_upper]
+                if mapped in all_tickers and mapped not in found_tickers:
+                    found_tickers.append(mapped)
+                    
+        # Check full company names
+        for name, tick in COMPANY_NAME_MAP.items():
+            if name.lower() in q_lower and tick in all_tickers and tick not in found_tickers:
+                found_tickers.append(tick)
+                
+        if not found_tickers:
+            # Fallback to top tickers if none detected
+            found_tickers = ["AMD", "NVDA"] if "AMD" in q_lower or "NVDA" in q_lower or "NVIDIA" in q_lower else all_tickers[:5]
+
+        # Extract latest records for the found tickers
+        filtered = df[df['ticker'].isin(found_tickers)].copy()
+        if filtered.empty:
+            return f"No records found in dataset for tickers: {found_tickers}"
+            
+        latest_df = filtered.sort_values('date').groupby('ticker').last().reset_index()
+        
+        # Select key financial and technical columns
+        target_cols = [
+            'ticker', 'date', 'close', 'rsi', 'macd', 'macd_signal', 
+            'sma_50', 'sma_200', 'pe_ratio', 'debt_to_equity', 'quick_ratio', 
+            'volatility_5d', 'return_5d_forward'
+        ]
+        available_cols = [c for c in target_cols if c in latest_df.columns]
+        summary_table = latest_df[available_cols].to_markdown(index=False)
+        
+        return f"Market Data & Financial Metrics Table:\n\n{summary_table}"
     except Exception as e:
         return f"Error executing financial comparison: {str(e)}"
 
