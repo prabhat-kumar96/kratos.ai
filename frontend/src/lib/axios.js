@@ -1,22 +1,24 @@
 import axios from "axios";
 
+const PROD_BACKEND = "https://kratos-backend-hoqd.onrender.com";
+
 // Read environment variables (supports VITE_API_URL, VITE_API_BASE_URL, or VITE_BACKEND_URL)
 const rawEnvUrl = (
     import.meta.env.VITE_API_URL ||
     import.meta.env.VITE_API_BASE_URL ||
     import.meta.env.VITE_BACKEND_URL ||
-    ""
+    (typeof window !== "undefined" && window.location.hostname !== "localhost" ? PROD_BACKEND : "http://localhost:8000")
 ).trim().replace(/\/+$/, "");
 
 // Ensure BACKEND_ORIGIN is clean root host (e.g., https://kratos-backend-hoqd.onrender.com)
 export const BACKEND_ORIGIN = rawEnvUrl
     ? rawEnvUrl.replace(/\/api\/v1\/?$/, "")
-    : "http://localhost:8000";
+    : PROD_BACKEND;
 
 // Ensure BASE_URL always has /api/v1
 export const BASE_URL = rawEnvUrl
     ? (rawEnvUrl.endsWith("/api/v1") ? rawEnvUrl : `${rawEnvUrl}/api/v1`)
-    : "http://localhost:8000/api/v1";
+    : `${PROD_BACKEND}/api/v1`;
 
 const api = axios.create({
     baseURL: BASE_URL,
