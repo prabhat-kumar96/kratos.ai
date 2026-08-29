@@ -194,9 +194,10 @@ export default function InvestorDashboard() {
         setSelectedCompany(null);
     };
 
-    const filteredCompanies = companies.filter(c =>
-        c.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredCompanies = (companies || []).filter(c =>
+        c && typeof c === 'object' &&
+        (((c.ticker || '').toLowerCase().includes(searchQuery.toLowerCase())) ||
+         ((c.name || '').toLowerCase().includes(searchQuery.toLowerCase())))
     );
 
     if (loading) return (
@@ -302,13 +303,13 @@ export default function InvestorDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
-                                            {filteredCompanies.map((company) => (
-                                                <tr key={company.id} className="hover:bg-white/5 transition-colors group">
+                                            {filteredCompanies.map((company, idx) => (
+                                                <tr key={company.id ?? idx} className="hover:bg-white/5 transition-colors group">
                                                     <td className="px-6 py-4 font-medium flex items-center gap-2">
                                                         <span className="w-8 h-8 rounded bg-indigo-500/10 flex items-center justify-center text-xs font-bold text-indigo-400">
-                                                            {company.ticker[0]}
+                                                            {(company.ticker || '?')[0]}
                                                         </span>
-                                                        {company.ticker}
+                                                        {company.ticker || 'UNKNOWN'}
                                                     </td>
                                                     <td className="px-6 py-4 font-mono text-gray-300">
                                                          ${typeof company.price === 'number' ? company.price.toFixed(2) : company.price}

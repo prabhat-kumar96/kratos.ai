@@ -13,7 +13,8 @@ export default function LiveNewsFeed({ ticker }) {
         try {
             // Updated URL to match the backend route registration
             const response = await api.get(`/news/${ticker}`);
-            setNews(response.data.news);
+            const newsList = Array.isArray(response.data?.news) ? response.data.news : [];
+            setNews(newsList);
         } catch (err) {
             console.error("Failed to load news", err);
             setError("Could not load live news feed.");

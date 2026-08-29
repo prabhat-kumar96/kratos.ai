@@ -55,11 +55,26 @@ export function AuthProvider({ children }) {
             try {
                 // Try to get a new access token using the HttpOnly refresh cookie
                 const { data } = await api.post("/users/refresh-token");
-                handleToken(data.data.accessToken);
+                if (data?.data?.accessToken) {
+                    handleToken(data.data.accessToken);
+                }
             } catch (error) {
-                // If refresh fails, user is not logged in
-                console.log("Not authenticated", error);
+                // Only clear user if we do NOT have a valid unexpired accessToken in localStorage
+                const cached = localStorage.getItem("accessToken");
+                if (cached) {
+                    try {
+                        const decoded = jwtDecode(cached);
+                        if (decoded && decoded.exp * 1000 > Date.now()) {
+                            // User is still authenticated with cached token
+                            setLoading(false);
+                            return;
+                        }
+                    } catch {}
+                }
+                console.log("Session expired or unauthenticated", error?.message);
                 setUser(null);
+                localStorage.removeItem("accessToken");
+                setAccessToken(null);
             } finally {
                 setLoading(false);
             }
