@@ -17,10 +17,10 @@ router.route("/").post(verifyJWT, async (req, res) => {
             const llmServiceUrl = process.env.LLM_SERVICE_URL || "http://localhost:8002";
             const cleanLlmUrl = llmServiceUrl.replace(/\/+$/, "");
             
-            const postWithRetry = async (url, payload, retries = 3, delay = 2500) => {
+            const postWithRetry = async (url, payload, retries = 10, delay = 5000) => {
                 for (let i = 0; i < retries; i++) {
                     try {
-                        return await axios.post(url, payload, { timeout: 60000 });
+                        return await axios.post(url, payload, { timeout: 90000 });
                     } catch (err) {
                         const isRetryable = !err.response || err.response.status === 502 || err.response.status === 503 || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT';
                         if (i === retries - 1 || !isRetryable) {
