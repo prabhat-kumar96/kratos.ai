@@ -12,17 +12,29 @@ router.route("/").post(verifyJWT, async (req, res) => {
             return res.status(400).json({ message: "Query is required" });
         }
 
-        // Forward logic to Python FastAPI Service (LLM)
+        // Forward logic to Python FastAPI Service (LLM) with automated retry for cold starts
         try {
             const llmServiceUrl = process.env.LLM_SERVICE_URL || "http://localhost:8002";
-            // Clean trailing slashes
             const cleanLlmUrl = llmServiceUrl.replace(/\/+$/, "");
             
-            const llmResponse = await axios.post(`${cleanLlmUrl}/chat`, {
+            const postWithRetry = async (url, payload, retries = 3, delay = 2500) => {
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        return await axios.post(url, payload, { timeout: 60000 });
+                    } catch (err) {
+                        const isRetryable = !err.response || err.response.status === 502 || err.response.status === 503 || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT';
+                        if (i === retries - 1 || !isRetryable) {
+                            throw err;
+                        }
+                        console.log(`[ChatProxy] LLM service waking up, retry ${i + 1}/${retries}...`);
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                }
+            };
+
+            const llmResponse = await postWithRetry(`${cleanLlmUrl}/chat`, {
                 query,
                 ticker
-            }, {
-                timeout: 45000 // 45s timeout for LLM inference
             });
 
             return res.status(200).json({
