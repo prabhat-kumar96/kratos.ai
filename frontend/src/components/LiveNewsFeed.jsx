@@ -63,11 +63,16 @@ export default function LiveNewsFeed({ ticker }) {
             </div>
 
             <div className="overflow-y-auto flex-1 p-4 space-y-3 custom-scrollbar">
-                {news.map((item) => {
-                    const hasLink = item.link && item.link.startsWith('http');
+                {news.map((item, idx) => {
+                    // Guard: item.link must be a non-empty STRING before calling startsWith
+                    const hasLink = typeof item.link === 'string' && item.link.startsWith('http');
+                    // Guard: published_at may be missing or invalid
+                    const publishedDate = item.published_at
+                        ? new Date(item.published_at).toLocaleDateString()
+                        : 'Unknown date';
                     return (
                         <div
-                            key={item.id}
+                            key={item.id ?? item._id ?? idx}
                             onClick={() => hasLink && window.open(item.link, '_blank', 'noopener,noreferrer')}
                             className={`bg-gray-800/50 p-4 rounded-lg border border-white/5 hover:bg-gray-800 transition-colors group ${hasLink ? 'cursor-pointer' : 'cursor-default'}`}
                         >
@@ -85,7 +90,7 @@ export default function LiveNewsFeed({ ticker }) {
                                 </span>
                             </div>
                             <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                                <span>{item.source} • {new Date(item.published_at).toLocaleDateString()}</span>
+                                <span>{item.source} • {publishedDate}</span>
                                 {hasLink && (
                                     <span className="flex items-center gap-1 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <ExternalLink className="w-3 h-3" />
