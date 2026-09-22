@@ -58,24 +58,38 @@ async def chat_endpoint(request: ChatRequest):
             "context": request.ticker if request.ticker else ""
         }
         
-        # Run the graph
-        # invoke returns the final state
+        # Run the graph — invoke returns the final state
         final_state = agent_app.invoke(inputs)
         
         # Extract the last message content
         messages = final_state.get("messages", [])
         if not messages:
             return ChatResponse(response="No response generated.")
-            
+        
         last_message = messages[-1]
         content = last_message.content
-        
-        return ChatResponse(response=content)
+
+        # content can be a list of dicts when Groq returns tool_call blocks
+        # e.g. [{"type": "text", "text": "..."}, {"type": "tool_use", ...}]
+        if isinstance(content, list):
+            text_parts = [
+                part.get("text", "") if isinstance(part, dict) else str(part)
+                for part in content
+                if not (isinstance(part, dict) and part.get("type") == "tool_use")
+            ]
+            content = " ".join(text_parts).strip()
+
+        # If still empty (router went to END with no direct answer), give a fallback
+        if not content or not str(content).strip():
+            content = "I was unable to generate a response. Please try rephrasing your question."
+
+        return ChatResponse(response=str(content))
         
     except Exception as e:
         import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        error_detail = traceback.format_exc()
+        print(f"[Chat Error] {str(e)}\n{error_detail}")
+        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
 if __name__ == "__main__":
     # Ensure we run relative to llm/src if run directly
